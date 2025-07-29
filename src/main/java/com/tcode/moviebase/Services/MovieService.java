@@ -17,7 +17,7 @@ public class MovieService {
     private final MovieGradeRepository movieGradeRepository;
     private final MovieRepository movieRepository;
 
-    public Iterable<Movie> getAllMovies(){
+    public List<Movie> getAllMovies(){
         return movieRepository.findAll();
     }
 
@@ -30,6 +30,7 @@ public class MovieService {
     public void deleteMovie(Long id) {
         movieRepository.deleteMovieById(id);
     }
+
 
 
 
