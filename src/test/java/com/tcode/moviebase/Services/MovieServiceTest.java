@@ -107,6 +107,50 @@ class MovieServiceTest {
         verify(movieGradeRepository).save(any(MovieGrade.class));
     }
 
+    @Test
+    void getAllMoviesReturnsEmptyListWhenNoMovies() {
+        when(movieRepository.findAll()).thenReturn(List.of());
+
+        List<Movie> result = movieService.getAllMovies();
+
+        assertTrue(result.isEmpty());
+        verify(movieRepository).findAll();
+    }
+
+    @Test
+    void searchReturnsEmptyListWhenNoMatches() {
+        String search = "test";
+        when(movieRepository.findByTitleIgnoreCaseContaining(search)).thenReturn(List.of());
+
+        List<Movie> result = movieService.search(search);
+
+        assertTrue(result.isEmpty());
+        verify(movieRepository).findByTitleIgnoreCaseContaining(search);
+    }
+
+    @Test
+    void findByCategoryReturnsEmptyListWhenNoMatches() {
+        String category = "test";
+        when(movieRepository.findMoviesByCategory(category)).thenReturn(List.of());
+
+        List<Movie> result = movieService.findByCategory(category);
+
+        assertTrue(result.isEmpty());
+        verify(movieRepository).findMoviesByCategory(category);
+    }
+
+    @Test
+    void addGradeReturnsNullWhenMovieNotFound() {
+        Long movieId = 1L;
+        int grade = 5;
+        when(movieRepository.findById(movieId)).thenReturn(Optional.empty());
+
+        MovieGrade result = movieService.addGrade(movieId, grade);
+
+        assertNull(result);
+
+    }
+
 
 
 }
