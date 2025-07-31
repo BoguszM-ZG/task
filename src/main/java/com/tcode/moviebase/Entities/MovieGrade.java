@@ -12,6 +12,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @Table(name = "movie_grade", schema = "movies")
 public class MovieGrade {
+
+    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

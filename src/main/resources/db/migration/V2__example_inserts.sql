@@ -1,5 +1,7 @@
 INSERT INTO movie (id, title, year, category, description, prizes)
-VALUES (2, 'The Godfather', 1972, 'Crime', 'The aging patriarch...', 'Oscar'),
+VALUES
+       (1, 'test', 1972, 'test', 'The aging patriarch...', 'Oscar'),
+       (2, 'The Godfather', 1972, 'Crime', 'The aging patriarch...', 'Oscar'),
        (3, 'Pulp Fiction', 1994, 'Crime', 'The lives of two mob hitmen...', 'Oscar'),
        (4, 'The Shawshank Redemption', 1994, 'Drama', 'Two imprisoned men bond...', 'Oscar'),
        (5, 'The Dark Knight', 2008, 'Action', 'Batman faces the Joker...', 'Oscar'),
