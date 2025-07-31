@@ -74,10 +74,22 @@ public class MovieController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Movie> updateMovie(@PathVariable Long id, @RequestBody Movie movie) {
+        if (!movieRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        var newMovie = movieRepository.findById(id).orElse(null);
+        newMovie.setTitle(movie.getTitle());
+        newMovie.setYear(movie.getYear());
+        newMovie.setDescription(movie.getDescription());
+        newMovie.setCategory(movie.getCategory());
+        newMovie.setPrizes(movie.getPrizes());
+        movieRepository.save(newMovie);
+        return ResponseEntity.ok(newMovie);
 
 
-
-
+    }
 
 
 }

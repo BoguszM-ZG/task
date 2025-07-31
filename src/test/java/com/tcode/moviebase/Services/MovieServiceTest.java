@@ -148,7 +148,6 @@ class MovieServiceTest {
         MovieGrade result = movieService.addGrade(movieId, grade);
 
         assertNull(result);
-
     }
 
 
