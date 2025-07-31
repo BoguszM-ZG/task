@@ -50,4 +50,16 @@ public class MovieService {
         movieGrade.setGrade(grade);
         return movieGradeRepository.save(movieGrade);
     }
+
+    public Movie updateMovie(Long id, Movie movie) {
+        Movie existingMovie = movieRepository.findById(id).orElse(null);
+
+        existingMovie.setTitle(movie.getTitle());
+        existingMovie.setYear(movie.getYear());
+        existingMovie.setCategory(movie.getCategory());
+        existingMovie.setDescription(movie.getDescription());
+        existingMovie.setPrizes(movie.getPrizes());
+
+        return movieRepository.save(existingMovie);
+    }
 }

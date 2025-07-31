@@ -150,6 +150,31 @@ class MovieServiceTest {
         assertNull(result);
     }
 
+    @Test
+    void updateMovieTest() {
+        Long id = 1L;
+        Movie movie = new Movie();
+        movie.setId(id);
+        movie.setTitle("test");
+        when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
+        when(movieRepository.save(movie)).thenReturn(movie);
+
+
+        Long id2 = 2L;
+        Movie movie2 = new Movie();
+        movie2.setId(id);
+        movie2.setTitle("test2");
+        when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
+        when(movieRepository.save(movie)).thenReturn(movie);
+
+        Movie result = movieService.updateMovie(id, movie2);
+
+        assertNotNull(result);
+        assertEquals("test2", result.getTitle());
+    }
+
+
+
 
 
 }

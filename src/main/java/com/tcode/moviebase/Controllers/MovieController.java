@@ -79,13 +79,7 @@ public class MovieController {
         if (!movieRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        var newMovie = movieRepository.findById(id).orElse(null);
-        newMovie.setTitle(movie.getTitle());
-        newMovie.setYear(movie.getYear());
-        newMovie.setDescription(movie.getDescription());
-        newMovie.setCategory(movie.getCategory());
-        newMovie.setPrizes(movie.getPrizes());
-        movieRepository.save(newMovie);
+        var newMovie = movieService.updateMovie(id, movie);
         return ResponseEntity.ok(newMovie);
 
 
