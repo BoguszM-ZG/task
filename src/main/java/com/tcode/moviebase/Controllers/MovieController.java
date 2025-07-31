@@ -35,6 +35,10 @@ public class MovieController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMovie(@PathVariable Long id) {
+        var exists = movieRepository.existsById(id);
+        if (!exists) {
+            return ResponseEntity.notFound().build();
+        }
         movieService.deleteMovie(id);
         return ResponseEntity.noContent().build();
     }
