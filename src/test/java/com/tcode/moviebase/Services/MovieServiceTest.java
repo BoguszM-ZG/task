@@ -162,7 +162,7 @@ class MovieServiceTest {
 
         Long id2 = 2L;
         Movie movie2 = new Movie();
-        movie2.setId(id);
+        movie2.setId(id2);
         movie2.setTitle("test2");
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
         when(movieRepository.save(movie)).thenReturn(movie);
