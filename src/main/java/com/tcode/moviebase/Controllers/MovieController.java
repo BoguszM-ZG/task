@@ -35,8 +35,8 @@ public class MovieController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMovie(@PathVariable Long id) {
-        var exists = movieRepository.existsById(id);
-        if (!exists) {
+        var exists = movieService.getMovieById(id);
+        if (exists == null) {
             return ResponseEntity.notFound().build();
         }
         movieService.deleteMovie(id);
@@ -45,7 +45,11 @@ public class MovieController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Movie> getMovie(@PathVariable Long id) {
-        return movieRepository.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        var movie = movieService.getMovieById(id);
+        if (movie == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(movie);
     }
 
     @GetMapping("/findByCategory/{category}")

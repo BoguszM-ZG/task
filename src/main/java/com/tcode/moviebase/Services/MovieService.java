@@ -17,7 +17,7 @@ public class MovieService {
     private final MovieGradeRepository movieGradeRepository;
     private final MovieRepository movieRepository;
 
-    public List<Movie> getAllMovies(){
+    public List<Movie> getAllMovies() {
         return movieRepository.findAll();
     }
 
@@ -31,9 +31,9 @@ public class MovieService {
         movieRepository.deleteMovieById(id);
     }
 
-
-
-
+    public Movie getMovieById(Long id) {
+        return movieRepository.findById(id).orElse(null);
+    }
 
     public List<Movie> search(String search) {
         return movieRepository.findByTitleIgnoreCaseContaining(search);
@@ -44,7 +44,7 @@ public class MovieService {
     }
 
     public MovieGrade addGrade(Long movieId, int grade) {
-        Movie movie =  movieRepository.findById(movieId).orElse(null);
+        Movie movie = movieRepository.findById(movieId).orElse(null);
         MovieGrade movieGrade = new MovieGrade();
         movieGrade.setMovie(movie);
         movieGrade.setGrade(grade);
