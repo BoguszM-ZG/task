@@ -19,7 +19,7 @@ public class MovieController {
 
     @GetMapping
     public ResponseEntity<List<Movie>> getAllMovies() {
-        List<Movie> movies = movieService.getAllMovies();
+        var movies = movieService.getAllMovies();
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -64,7 +64,7 @@ public class MovieController {
 
     @GetMapping("/findByTitle")
     public ResponseEntity<List<Movie>> getMoviesByTitle(@RequestParam String title) {
-        List<Movie> movies = movieService.search(title);
+        var movies = movieService.search(title);
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {
