@@ -23,8 +23,8 @@ public class Movie {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "year", nullable = false)
-    private Integer year;
+    @Column(name = "movie_year", nullable = false)
+    private Integer movie_year;
 
     @Column(name = "category", length = 100)
     private String category;

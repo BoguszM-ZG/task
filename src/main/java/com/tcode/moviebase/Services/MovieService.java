@@ -1,7 +1,6 @@
 package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Entities.Movie;
-import com.tcode.moviebase.Entities.MovieGrade;
 import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +48,7 @@ public class MovieService {
         Movie existingMovie = movieRepository.findById(id).orElse(null);
 
         existingMovie.setTitle(movie.getTitle());
-        existingMovie.setYear(movie.getYear());
+        existingMovie.setMovie_year(movie.getMovie_year());
         existingMovie.setCategory(movie.getCategory());
         existingMovie.setDescription(movie.getDescription());
         existingMovie.setPrizes(movie.getPrizes());

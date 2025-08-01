@@ -1,4 +1,4 @@
-INSERT INTO movie (id, title, year, category, description, prizes)
+INSERT INTO movies.movie (id, title, movie_year, category, description, prizes)
 VALUES
        (1, 'test', 1972, 'test', 'The aging patriarch...', 'Oscar'),
        (2, 'The Godfather', 1972, 'Crime', 'The aging patriarch...', 'Oscar'),
@@ -12,7 +12,7 @@ VALUES
        (10, 'Gladiator', 2000, 'Action', 'A former Roman General...', 'Oscar');
 
 
-INSERT INTO movie_grade (movie_id, grade)
+INSERT INTO movies.movie_grade (movie_id, grade)
 VALUES (1, 9),
        (1, 8),
        (2, 10),
