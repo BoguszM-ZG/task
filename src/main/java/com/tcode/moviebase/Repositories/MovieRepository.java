@@ -13,6 +13,9 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @EntityGraph(attributePaths = "movieGrades")
     List<Movie> findAll();
 
+    @EntityGraph(attributePaths = "movieGrades")
     List<Movie> findByTitleIgnoreCaseContaining(String title);
+
+    @EntityGraph(attributePaths = "movieGrades")
     List<Movie> findMoviesByCategory(String category);
 }
