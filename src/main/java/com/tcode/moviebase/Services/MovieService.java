@@ -43,13 +43,7 @@ public class MovieService {
         return movieRepository.findMoviesByCategory(category);
     }
 
-    public MovieGrade addGrade(Long movieId, int grade) {
-        Movie movie = movieRepository.findById(movieId).orElse(null);
-        MovieGrade movieGrade = new MovieGrade();
-        movieGrade.setMovie(movie);
-        movieGrade.setGrade(grade);
-        return movieGradeRepository.save(movieGrade);
-    }
+
 
     public Movie updateMovie(Long id, Movie movie) {
         Movie existingMovie = movieRepository.findById(id).orElse(null);

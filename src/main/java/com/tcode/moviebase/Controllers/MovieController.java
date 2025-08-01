@@ -2,7 +2,9 @@ package com.tcode.moviebase.Controllers;
 
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Entities.MovieGrade;
+import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
+import com.tcode.moviebase.Services.MovieGradeService;
 import com.tcode.moviebase.Services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MovieController {
     private final MovieService movieService;
+    private final MovieGradeRepository movieGradeRepository;
+    private final MovieGradeService movieGradeService;
     private final MovieRepository movieRepository;
 
     @Operation(summary = "Get all movies", description = "Retrieves a list of all movies in the database.")
@@ -80,14 +84,15 @@ public class MovieController {
         }
     }
 
-    @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID.")
+    @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
-    public ResponseEntity<MovieGrade> addMovieGrade(@PathVariable Long id, @RequestParam int grade) {
-        var movieGrade = movieService.addGrade(id, grade);
+    public ResponseEntity<Double> addMovieGrade(@PathVariable Long id, @RequestParam int grade) {
+        var movieGrade = movieGradeService.addGrade(id, grade);
         if (movieGrade == null) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.status(201).body(movieGrade);
+            var avgGrade = movieGradeService.getAvgGrade(id);
+            return ResponseEntity.status(201).body(avgGrade);
         }
     }
 
@@ -101,6 +106,16 @@ public class MovieController {
         return ResponseEntity.ok(newMovie);
 
 
+    }
+
+    @Operation(summary = "Get average grade of a movie", description = "Retrieves the average grade of a movie by its ID.")
+    @GetMapping("/{id}/average-grade")
+    public ResponseEntity<Double> getAverageGrade(@PathVariable Long id) {
+        var avgGrade = movieGradeService.getAvgGrade(id);
+        if (avgGrade == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(avgGrade);
     }
 
 

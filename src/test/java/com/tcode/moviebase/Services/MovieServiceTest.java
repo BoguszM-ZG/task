@@ -31,6 +31,9 @@ class MovieServiceTest {
     @InjectMocks
     private MovieService movieService;
 
+    @InjectMocks
+    private MovieGradeService movieGradeService;
+
     @Test
     void getAllMoviesReturnsList() {
         Movie m1 = new Movie();
@@ -100,7 +103,7 @@ class MovieServiceTest {
         when(movieRepository.findById(movieId)).thenReturn(Optional.of(movie));
         when(movieGradeRepository.save(any(MovieGrade.class))).thenReturn(movieGrade);
 
-        MovieGrade result = movieService.addGrade(movieId, grade);
+        MovieGrade result = movieGradeService.addGrade(movieId, grade);
 
         assertEquals(movieGrade, result);
         verify(movieRepository).findById(movieId);
@@ -145,7 +148,7 @@ class MovieServiceTest {
         int grade = 5;
         when(movieRepository.findById(movieId)).thenReturn(Optional.empty());
 
-        MovieGrade result = movieService.addGrade(movieId, grade);
+        MovieGrade result = movieGradeService.addGrade(movieId, grade);
 
         assertNull(result);
     }
