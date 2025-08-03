@@ -1,5 +1,6 @@
 package com.tcode.moviebase;
 
+import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -212,6 +213,26 @@ class MovieBaseApplicationTests {
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
+    }
+
+    @Test
+    void testGetMovieByIdWithAverageGrade() {
+        var movie = new Movie();
+        movie.setTitle("Test");
+        movie.setCategory("Test Category");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+
+        Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie.getId() + "/grade?grade=5", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie.getId() + "/grade?grade=4", null, Double.class);
+
+        MovieWithAvgGradeDto response = restTemplate.getForObject(baseUrl + "/" + savedMovie.getId()+ "/details", MovieWithAvgGradeDto.class);
+
+        assertNotNull(response);
+        assertEquals(4.5, response.getAvgGrade());
     }
 
 
