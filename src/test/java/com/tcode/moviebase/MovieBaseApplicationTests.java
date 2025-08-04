@@ -5,7 +5,6 @@ import com.tcode.moviebase.Entities.Movie;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
@@ -109,13 +108,17 @@ class MovieBaseApplicationTests {
         movie2.setMovie_year(2023);
         movie2.setPrizes("oscar");
 
-        var test1 = restTemplate.postForObject(baseUrl, movie1, Movie.class);
-        var test2 = restTemplate.postForObject(baseUrl, movie2, Movie.class);
+        restTemplate.postForObject(baseUrl, movie1, Movie.class);
+        restTemplate.postForObject(baseUrl, movie2, Movie.class);
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl, Movie[].class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length >= 2);
+        assertTrue(response.getBody()[response.getBody().length-2].getTitle().contains("Test1"));
+        assertTrue(response.getBody()[response.getBody().length-1].getTitle().contains("Test2"));
 
 
-
-        assertEquals("Test1", test1.getTitle());
-        assertEquals("Test2", test2.getTitle());
     }
 
     @Test
@@ -234,6 +237,131 @@ class MovieBaseApplicationTests {
         assertNotNull(response);
         assertEquals(4.5, response.getAvgGrade());
     }
+
+    @Test
+    void testGetMovieWithAvgGradeNotFound() {
+        Long nonExistentMovieId = 999L;
+
+        try {
+            restTemplate.getForEntity(baseUrl + "/" + nonExistentMovieId + "/details", MovieWithAvgGradeDto.class);
+            fail("Expected 404 NOT FOUND for movie with average grade");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    @Test
+    void testGetMovieWithAvgGradeWithoutGrades() {
+        var movie = new Movie();
+        movie.setTitle("Test");
+        movie.setCategory("Test Category");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+
+        Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
+
+        MovieWithAvgGradeDto response = restTemplate.getForObject(baseUrl + "/" + savedMovie.getId() + "/details", MovieWithAvgGradeDto.class);
+
+        assertNotNull(response);
+        assertEquals(savedMovie.getTitle(), response.getTitle());
+        assertEquals(savedMovie.getCategory(), response.getCategory());
+        assertEquals(savedMovie.getDescription(), response.getDescription());
+        assertEquals(savedMovie.getMovie_year(), response.getMovie_year());
+        assertEquals(savedMovie.getPrizes(), response.getPrizes());
+        assertNull(response.getAvgGrade());
+    }
+
+    @Test
+    void testGetMovieWithAvgGradeForNonExistentMovie() {
+        Long nonExistentMovieId = 999L;
+
+        try {
+            restTemplate.getForEntity(baseUrl + "/" + nonExistentMovieId + "/details", MovieWithAvgGradeDto.class);
+            fail("Expected 404 NOT FOUND for movie with average grade");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    @Test
+    void testUpdateMovieNotFound() {
+        Long nonExistentMovieId = 999L;
+        var movie = new Movie();
+        movie.setTitle("Updated Title");
+        movie.setCategory("Updated Category");
+        movie.setDescription("Updated Description");
+        movie.setMovie_year(2023);
+        movie.setPrizes("Updated Prizes");
+
+        try {
+            restTemplate.put(baseUrl + "/" + nonExistentMovieId, movie);
+            fail("Expected 404 NOT FOUND for updating non-existent movie");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    @Test
+    void testAddGradeToNonExistentMovie() {
+        Long nonExistentMovieId = 999L;
+        int grade = 5;
+
+        try {
+            restTemplate.postForEntity(baseUrl + "/" + nonExistentMovieId + "/grade?grade=" + grade, null, Double.class);
+            fail("Expected 404 NOT FOUND for adding grade to non-existent movie");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    @Test
+    void testGetMovieWithNonExistentId() {
+        Long nonExistentMovieId = 999L;
+
+        try {
+            restTemplate.getForEntity(baseUrl + "/" + nonExistentMovieId, Movie.class);
+            fail("Expected 404 NOT FOUND for non-existent movie");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    @Test
+    void testGetMoviesByTitleNoContent() {
+        String title = "NonExistentTitle";
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/findByTitle?title=" + title, Movie[].class);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void testGetMoviesByCategoryNoContent() {
+        String category = "NonExistentCategory";
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/findByCategory/" + category, Movie[].class);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void testDeleteNonExistentMovie() {
+        Long nonExistentMovieId = 999L;
+
+        try {
+            restTemplate.delete(baseUrl + "/" + nonExistentMovieId);
+            fail("Expected 404 NOT FOUND for deleting non-existent movie");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS movies;
-SET SCHEMA movies;
+
 
 CREATE TABLE movies.movie (
                        id BIGINT PRIMARY KEY AUTO_INCREMENT,
