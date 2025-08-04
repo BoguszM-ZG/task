@@ -176,6 +176,44 @@ class MovieServiceTest {
         assertEquals("test2", result.getTitle());
     }
 
+    @Test
+    void getAvgGradeReturnsNullWhenNoGrades() {
+        Long movieId = 1L;
+        when(movieGradeRepository.findByMovieId(movieId)).thenReturn(List.of());
+
+        Double result = movieGradeService.getAvgGrade(movieId);
+
+        assertNull(result);
+        verify(movieGradeRepository).findByMovieId(movieId);
+    }
+
+    @Test
+    void getAvgGradeReturnsAverageWhenGradesExist() {
+        Long movieId = 12L;
+        MovieGrade grade1 = new MovieGrade();
+        grade1.setGrade(5);
+        MovieGrade grade2 = new MovieGrade();
+        grade2.setGrade(7);
+        when(movieGradeRepository.findByMovieId(movieId)).thenReturn(Arrays.asList(grade1, grade2));
+
+        Double result = movieGradeService.getAvgGrade(movieId);
+
+        assertEquals(6.0, result);
+        verify(movieGradeRepository).findByMovieId(movieId);
+    }
+
+    @Test
+    void getMovieByIdReturnsMovieWhenExists() {
+        Long id = 12L;
+        Movie movie = new Movie();
+        when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
+
+        Movie result = movieService.getMovieById(id);
+
+        assertNotNull(result);
+        verify(movieRepository).findById(id);
+    }
+
 
 
 

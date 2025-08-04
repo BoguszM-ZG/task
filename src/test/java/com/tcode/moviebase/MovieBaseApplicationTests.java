@@ -359,6 +359,26 @@ class MovieBaseApplicationTests {
         }
     }
 
+    @Test
+    void testAddInvalidGrade() {
+        var movie = new Movie();
+        movie.setTitle("Test");
+        movie.setCategory("Test Category");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+
+        Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
+
+        try {
+            restTemplate.postForEntity(baseUrl + "/" + savedMovie.getId() + "/grade?grade=11", null, Double.class);
+            fail("Expected 400 BAD REQUEST for invalid grade");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Grade must be between 1 and 10.", e.getResponseBodyAsString());
+        }
+    }
+
 
 
 

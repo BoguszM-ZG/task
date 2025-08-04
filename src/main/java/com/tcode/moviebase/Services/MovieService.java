@@ -55,4 +55,23 @@ public class MovieService {
 
         return movieRepository.save(existingMovie);
     }
+
+    public List<Movie> getMoviesByTag(String tag) {
+        return movieRepository.findByTagContaining(tag);
+    }
+
+    public List<Movie> getMoviesByPremiereYear(int premiereYear) {
+        return movieRepository.findAll().stream()
+                .filter(movie -> movie.getMovie_year() == premiereYear)
+                .toList();
+    }
+
+
+    public List<Movie> getMoviesByPolishPremiereMonthAndYear(int month, int year) {
+        return movieRepository.findMovieByPolishPremiereMonthAndYear(month, year);
+    }
+
+    public List<Movie> getMoviesByWorldPremiereMonthAndYear(int month, int year) {
+        return movieRepository.findMovieByWorldPremiereMonthAndYear(month, year);
+    }
 }

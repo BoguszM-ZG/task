@@ -3,6 +3,7 @@ package com.tcode.moviebase.Repositories;
 import com.tcode.moviebase.Entities.Movie;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 
 import java.util.List;
@@ -18,4 +19,17 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @EntityGraph(attributePaths = "movieGrades")
     List<Movie> findMoviesByCategory(String category);
+
+
+    @Query("SELECT m FROM Movie m WHERE FUNCTION('MONTH', m.polish_premiere) = :month AND FUNCTION('YEAR', m.polish_premiere) = :year")
+    List<Movie> findMovieByPolishPremiereMonthAndYear(int month, int year);
+
+
+    @Query("SELECT m FROM Movie m WHERE FUNCTION('MONTH', m.world_premiere) = :month AND FUNCTION('YEAR', m.world_premiere) = :year")
+    List<Movie> findMovieByWorldPremiereMonthAndYear(int month, int year);
+
+
+
+
+    List<Movie> findByTagContaining(String tag);
 }
