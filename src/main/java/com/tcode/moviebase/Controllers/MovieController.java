@@ -1,8 +1,9 @@
 package com.tcode.moviebase.Controllers;
 
+import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
-import com.tcode.moviebase.Entities.MovieGrade;
-import com.tcode.moviebase.Repositories.MovieGradeRepository;
+
+
 import com.tcode.moviebase.Repositories.MovieRepository;
 import com.tcode.moviebase.Services.MovieGradeService;
 import com.tcode.moviebase.Services.MovieService;
@@ -18,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MovieController {
     private final MovieService movieService;
-    private final MovieGradeRepository movieGradeRepository;
     private final MovieGradeService movieGradeService;
     private final MovieRepository movieRepository;
 
@@ -87,6 +87,9 @@ public class MovieController {
     @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
     public ResponseEntity<Double> addMovieGrade(@PathVariable Long id, @RequestParam int grade) {
+        if (!movieRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
         var movieGrade = movieGradeService.addGrade(id, grade);
         if (movieGrade == null) {
             return ResponseEntity.notFound().build();
@@ -116,6 +119,26 @@ public class MovieController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(avgGrade);
+    }
+
+    @Operation(summary = "Get movie with average grade", description = "Retrieves a movie along with its average grade by its ID.")
+    @GetMapping("/{id}/details")
+    public ResponseEntity<MovieWithAvgGradeDto> getMovieWithAvgGrade(@PathVariable Long id) {
+        var movie = movieService.getMovieById(id);
+        if (movie == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Double avgGrade = movieGradeService.getAvgGrade(id);
+
+        var movieWithAvgGradeDto = new MovieWithAvgGradeDto(
+                movie.getTitle(),
+                movie.getMovie_year(),
+                movie.getCategory(),
+                movie.getDescription(),
+                movie.getPrizes(),
+                avgGrade
+        );
+        return ResponseEntity.ok(movieWithAvgGradeDto);
     }
 
 
