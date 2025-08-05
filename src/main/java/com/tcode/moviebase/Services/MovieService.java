@@ -1,5 +1,6 @@
 package com.tcode.moviebase.Services;
 
+import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
@@ -15,6 +16,7 @@ import java.util.List;
 public class MovieService {
     private final MovieGradeRepository movieGradeRepository;
     private final MovieRepository movieRepository;
+    private final MovieGradeService movieGradeService;
 
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
@@ -77,5 +79,16 @@ public class MovieService {
 
     public List<Movie> getMoviesByWorldPremiereMonthAndYear(int month, int year) {
         return movieRepository.findMovieByWorldPremiereMonthAndYear(month, year);
+    }
+
+    public List<MovieWithAvgGradeDto> getMoviesWithAvgGradeDesc() {
+        return movieRepository.findAllMoviesWithAvgGradeDesc();
+    }
+
+    public List<MovieWithAvgGradeDto> getMoviesWithAvgGradeAsc() {
+        return movieRepository.findAllMoviesWithAvgGradeAsc();
+    }
+    public List<MovieWithAvgGradeDto> getTopTenMoviesWithAvgGrade() {
+        return movieRepository.findTop10MoviesByAvgGrade();
     }
 }
