@@ -30,10 +30,7 @@ public class MovieGradeService {
             return null;
         }
 
-        var result = 0.0;
-        for (MovieGrade grade: grades) {
-        result += grade.getGrade();
-        }
+        var result = grades.stream().mapToDouble(MovieGrade::getGrade).sum();
 
         return result / grades.size();
 

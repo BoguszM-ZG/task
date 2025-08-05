@@ -52,7 +52,30 @@ public class MovieService {
         existingMovie.setCategory(movie.getCategory());
         existingMovie.setDescription(movie.getDescription());
         existingMovie.setPrizes(movie.getPrizes());
+        existingMovie.setTag(movie.getTag());
+        existingMovie.setWorld_premiere(movie.getWorld_premiere());
+        existingMovie.setPolish_premiere(movie.getPolish_premiere());
+
 
         return movieRepository.save(existingMovie);
+    }
+
+    public List<Movie> getMoviesByTag(String tag) {
+        return movieRepository.findByTagContaining(tag);
+    }
+
+    public List<Movie> getMoviesByPremiereYear(int premiereYear) {
+        return movieRepository.findAll().stream()
+                .filter(movie -> movie.getMovie_year() == premiereYear)
+                .toList();
+    }
+
+
+    public List<Movie> getMoviesByPolishPremiereMonthAndYear(int month, int year) {
+        return movieRepository.findMovieByPolishPremiereMonthAndYear(month, year);
+    }
+
+    public List<Movie> getMoviesByWorldPremiereMonthAndYear(int month, int year) {
+        return movieRepository.findMovieByWorldPremiereMonthAndYear(month, year);
     }
 }

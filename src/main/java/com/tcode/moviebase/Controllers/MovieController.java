@@ -34,7 +34,11 @@ public class MovieController {
 
     @Operation(summary = "Add a new movie", description = "Adds a new movie to the database.")
     @PostMapping
-    public ResponseEntity<Movie> addMovie(@RequestBody Movie movie) {
+    public ResponseEntity<?> addMovie(@RequestBody Movie movie) {
+        if (movie.getTitle() == null || movie.getMovie_year() == null) {
+            return ResponseEntity.badRequest().body("Title and year are required fields.");
+        }
+
         var movieAdded = movieService.addMovie(movie);
         return ResponseEntity.status(201).body(movieAdded);
     }
@@ -86,7 +90,10 @@ public class MovieController {
 
     @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
-    public ResponseEntity<Double> addMovieGrade(@PathVariable Long id, @RequestParam int grade) {
+    public ResponseEntity<?> addMovieGrade(@PathVariable Long id,@RequestParam int grade) {
+        if (grade < 1 || grade > 10) {
+            return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
+        }
         if (!movieRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
@@ -136,10 +143,64 @@ public class MovieController {
                 movie.getCategory(),
                 movie.getDescription(),
                 movie.getPrizes(),
+                movie.getWorld_premiere(),
+                movie.getPolish_premiere(),
+                movie.getTag(),
                 avgGrade
         );
         return ResponseEntity.ok(movieWithAvgGradeDto);
     }
+
+
+    @Operation(summary = "Get new movies", description = "Retrieves a list of movies that contain a specific tag.")
+    @GetMapping("/findNew")
+    public ResponseEntity<List<Movie>> getMoviesByTag() {
+        String tag = "new";
+        var movies = movieService.getMoviesByTag(tag);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get movies by premiere year", description = "Retrieves a list of movies that premiered in a specific year.")
+    @GetMapping("/premiereYear")
+    public ResponseEntity<List<Movie>> getMoviesByPremiereYear(@RequestParam int premiereYear) {
+        var movies = movieService.getMoviesByPremiereYear(premiereYear);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+
+    @Operation(summary = "Get movies by polish premiere month and year", description = "Retrieves a list of movies that premiered in a specific month and year.")
+    @GetMapping("/polishPremiereMonthAndYear")
+    public ResponseEntity<List<Movie>> getMoviesByPolishPremiereMonthAndYear(@RequestParam int month, @RequestParam int year) {
+        var movies = movieService.getMoviesByPolishPremiereMonthAndYear(month, year);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get movies by world premiere month and year", description = "Retrieves a list of movies that premiered worldwide in a specific month and year.")
+    @GetMapping("/worldPremiereMonthAndYear")
+    public ResponseEntity<List<Movie>> getMoviesByWorldPremiereMonthAndYear(@RequestParam int month, @RequestParam int year) {
+        var movies = movieService.getMoviesByWorldPremiereMonthAndYear(month, year);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+
+
+
 
 
 }
