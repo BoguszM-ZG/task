@@ -47,10 +47,10 @@ class MovieBaseApplicationTests {
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
 
-        Movie responce = restTemplate.postForObject(baseUrl, movie, Movie.class);
+        Movie response = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
 
-        assertEquals("Test", responce.getTitle());
+        assertEquals("Test", response.getTitle());
 
     }
 
@@ -378,6 +378,124 @@ class MovieBaseApplicationTests {
             assertEquals("Grade must be between 1 and 10.", e.getResponseBodyAsString());
         }
     }
+
+    @Test
+    void testGetMoviesWithTag() {
+        var movie = new Movie();
+        movie.setTitle("Test");
+        movie.setCategory("Test");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+        movie.setTag("new");
+
+        Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/findNew", Movie[].class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length > 0);
+        assertEquals(savedMovie.getId(), response.getBody()[response.getBody().length-1].getId());
+    }
+
+    @Test
+    void testGetMoviesByPremiereYear() {
+        int premiereYear = 2023;
+
+        var movie = new Movie();
+        movie.setTitle("Test");
+        movie.setCategory("Test Category");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(premiereYear);
+        movie.setPrizes("oscar");
+
+        restTemplate.postForObject(baseUrl, movie, Movie.class);
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/premiereYear?premiereYear=" + premiereYear, Movie[].class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length > 0);
+        assertEquals(premiereYear, response.getBody()[response.getBody().length-1].getMovie_year());
+    }
+
+    @Test
+    void testGetMoviesByPolishPremiereMonthAndYear() {
+        int month = 5;
+        int year = 2023;
+
+        var movie = new Movie();
+        movie.setTitle("Test");
+        movie.setCategory("Test Category");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+        movie.setPolish_premiere(java.time.LocalDate.of(year, month, 15));
+
+        restTemplate.postForObject(baseUrl, movie, Movie.class);
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/polishPremiereMonthAndYear?month=" + month + "&year=" + year, Movie[].class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length > 0);
+        assertEquals(month, response.getBody()[response.getBody().length-1].getPolish_premiere().getMonthValue());
+        assertEquals(year, response.getBody()[response.getBody().length-1].getPolish_premiere().getYear());
+    }
+
+    @Test
+    void testGetMoviesByWorldPremiereMonthAndYear() {
+        int month = 6;
+        int year = 2023;
+
+        var movie = new Movie();
+        movie.setTitle("Test");
+        movie.setCategory("Test Category");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+        movie.setWorld_premiere(java.time.LocalDate.of(year, month, 20));
+
+        restTemplate.postForObject(baseUrl, movie, Movie.class);
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/worldPremiereMonthAndYear?month=" + month + "&year=" + year, Movie[].class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length > 0);
+        assertEquals(month, response.getBody()[response.getBody().length-1].getWorld_premiere().getMonthValue());
+        assertEquals(year, response.getBody()[response.getBody().length-1].getWorld_premiere().getYear());
+    }
+
+    @Test
+    void testGetMoviesByYearNoContent() {
+        int nonExistentYear = 2100;
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/premiereYear?premiereYear=" + nonExistentYear, Movie[].class);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void testGetMoviesByPolishPremiereMonthAndYearNoContent() {
+        int month = 6;
+        int year = 2100;
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/polishPremiereMonthAndYear?month=" + month + "&year=" + year, Movie[].class);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void testGetMoviesByWorldPremiereMonthAndYearNoContent() {
+        int month = 6;
+        int year = 2100;
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/worldPremiereMonthAndYear?month=" + month + "&year=" + year, Movie[].class);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
 
 
 

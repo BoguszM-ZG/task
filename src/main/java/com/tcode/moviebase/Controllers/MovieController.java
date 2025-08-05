@@ -143,6 +143,9 @@ public class MovieController {
                 movie.getCategory(),
                 movie.getDescription(),
                 movie.getPrizes(),
+                movie.getWorld_premiere(),
+                movie.getPolish_premiere(),
+                movie.getTag(),
                 avgGrade
         );
         return ResponseEntity.ok(movieWithAvgGradeDto);

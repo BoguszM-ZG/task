@@ -52,6 +52,10 @@ public class MovieService {
         existingMovie.setCategory(movie.getCategory());
         existingMovie.setDescription(movie.getDescription());
         existingMovie.setPrizes(movie.getPrizes());
+        existingMovie.setTag(movie.getTag());
+        existingMovie.setWorld_premiere(movie.getWorld_premiere());
+        existingMovie.setPolish_premiere(movie.getPolish_premiere());
+
 
         return movieRepository.save(existingMovie);
     }
