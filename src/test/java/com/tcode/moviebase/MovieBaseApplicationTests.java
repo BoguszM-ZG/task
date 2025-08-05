@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+
+
 import static com.jayway.jsonpath.internal.path.PathCompiler.fail;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -495,6 +497,100 @@ class MovieBaseApplicationTests {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertNull(response.getBody());
     }
+    @Test
+    void testGetAllMoviesSortedByAvgDesc() {
+        var movie1 = new Movie();
+        movie1.setTitle("Test1");
+        movie1.setCategory("Test Category 1");
+        movie1.setDescription("This is a test movie description 1.");
+        movie1.setMovie_year(2023);
+        movie1.setPrizes("oscar");
+
+        var movie2 = new Movie();
+        movie2.setTitle("Test2");
+        movie2.setCategory("Test Category 2");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+
+        var savedMovie1 = restTemplate.postForObject(baseUrl, movie1, Movie.class);
+        var savedMovie2 = restTemplate.postForObject(baseUrl, movie2, Movie.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie1.getId() + "/grade?grade=10", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie1.getId() + "/grade?grade=9", null, Double.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=10", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=9", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=9", null, Double.class);
+
+
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/sortedByAvgGradeDesc", Movie[].class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length >= 2);
+        assertTrue(response.getBody()[2].getTitle().contains("Test1"));
+        assertTrue(response.getBody()[3].getTitle().contains("Test2"));
+
+    }
+
+    @Test
+    void testGetAllMoviesSortedByAvgAsc() {
+        var movie1 = new Movie();
+        movie1.setTitle("Test1");
+        movie1.setCategory("Test Category 1");
+        movie1.setDescription("This is a test movie description 1.");
+        movie1.setMovie_year(2023);
+        movie1.setPrizes("oscar");
+
+        var movie2 = new Movie();
+        movie2.setTitle("Test2");
+        movie2.setCategory("Test Category 2");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+
+        var savedMovie1 = restTemplate.postForObject(baseUrl, movie1, Movie.class);
+        var savedMovie2 = restTemplate.postForObject(baseUrl, movie2, Movie.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie1.getId() + "/grade?grade=2", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=1", null, Double.class);
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/sortedByAvgGradeAsc", Movie[].class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+    }
+
+    @Test
+    void testGetTopTenMoviesByAvgGrade() {
+        var movie1 = new Movie();
+        movie1.setTitle("Test10");
+        movie1.setCategory("Test Category 1");
+        movie1.setDescription("This is a test movie description 1.");
+        movie1.setMovie_year(2023);
+        movie1.setPrizes("oscar");
+
+        var movie2 = new Movie();
+        movie2.setTitle("Test12");
+        movie2.setCategory("Test Category 2");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+
+        var savedMovie1 = restTemplate.postForObject(baseUrl, movie1, Movie.class);
+        var savedMovie2 = restTemplate.postForObject(baseUrl, movie2, Movie.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie1.getId() + "/grade?grade=10", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=9", null, Double.class);
+
+        ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl + "/top10ByAvgGrade", Movie[].class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(10, response.getBody().length);
+    }
+
+
 
 
 

@@ -1,5 +1,6 @@
 package com.tcode.moviebase.Services;
 
+import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 
 import com.tcode.moviebase.Repositories.MovieRepository;
@@ -238,6 +239,48 @@ class MovieServiceTest {
 
         assertEquals(2, result.size());
         verify(movieRepository).findMovieByPolishPremiereMonthAndYear(month, year);
+    }
+
+    @Test
+    void testGetMoviesWithAvgGradeSortedDesc() {
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 4.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 3.8);
+        when(movieRepository.findAllMoviesWithAvgGradeDesc()).thenReturn(Arrays.asList(m1, m2));
+
+        List<MovieWithAvgGradeDto> result = movieService.getMoviesWithAvgGradeDesc();
+
+        assertEquals(2, result.size());
+        assertEquals(4.5, result.get(0).getAvgGrade());
+        assertEquals(3.8, result.get(1).getAvgGrade());
+        verify(movieRepository).findAllMoviesWithAvgGradeDesc();
+    }
+
+    @Test
+    void testGetMoviesWithAvgGradeSortedAsc() {
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 2.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 3.8);
+        when(movieRepository.findAllMoviesWithAvgGradeAsc()).thenReturn(Arrays.asList(m1, m2));
+
+        List<MovieWithAvgGradeDto> result = movieService.getMoviesWithAvgGradeAsc();
+
+        assertEquals(2, result.size());
+        assertEquals(2.5, result.get(0).getAvgGrade());
+        assertEquals(3.8, result.get(1).getAvgGrade());
+        verify(movieRepository).findAllMoviesWithAvgGradeAsc();
+    }
+
+    @Test
+    void testGetTop10MoviesByAvgGrade() {
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 4.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 3.8);
+        when(movieRepository.findTop10MoviesByAvgGrade()).thenReturn(Arrays.asList(m1, m2));
+
+        List<MovieWithAvgGradeDto> result = movieService.getTopTenMoviesWithAvgGrade();
+
+        assertEquals(2, result.size());
+        assertEquals(4.5, result.get(0).getAvgGrade());
+        assertEquals(3.8, result.get(1).getAvgGrade());
+        verify(movieRepository).findTop10MoviesByAvgGrade();
     }
 
 
