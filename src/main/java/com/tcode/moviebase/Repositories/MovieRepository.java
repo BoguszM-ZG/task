@@ -12,7 +12,7 @@ import java.util.List;
 public interface MovieRepository extends JpaRepository<Movie, Long> {
     void deleteMovieById(Long id);
 
-    @EntityGraph(attributePaths = "movieGrades")
+    @EntityGraph(attributePaths = { "movieGrades", "actors" })
     List<Movie> findAll();
 
     @EntityGraph(attributePaths = "movieGrades")
