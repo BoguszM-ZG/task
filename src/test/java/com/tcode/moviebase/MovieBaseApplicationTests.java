@@ -529,8 +529,8 @@ class MovieBaseApplicationTests {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().length >= 2);
-        assertTrue(response.getBody()[2].getTitle().contains("Test1"));
-        assertTrue(response.getBody()[3].getTitle().contains("Test2"));
+        assertEquals("Test1", response.getBody()[3].getTitle());
+        assertEquals("Test2", response.getBody()[4].getTitle());
 
     }
 
