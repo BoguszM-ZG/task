@@ -2,8 +2,6 @@ package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Entities.Movie;
 
-import com.tcode.moviebase.Entities.MovieGrade;
-import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,14 +24,12 @@ class MovieServiceTest {
     @Mock
     private MovieRepository movieRepository;
 
-    @Mock
-    private MovieGradeRepository movieGradeRepository;
+
 
     @InjectMocks
     private MovieService movieService;
 
-    @InjectMocks
-    private MovieGradeService movieGradeService;
+
 
     @Test
     void getAllMoviesReturnsList() {
@@ -95,21 +91,7 @@ class MovieServiceTest {
         verify(movieRepository).findMoviesByCategory(category);
     }
 
-    @Test
-    void addGradeTest() {
-        Long movieId = 1L;
-        int grade = 5;
-        Movie movie = new Movie();
-        MovieGrade movieGrade = new MovieGrade();
-        when(movieRepository.findById(movieId)).thenReturn(Optional.of(movie));
-        when(movieGradeRepository.save(any(MovieGrade.class))).thenReturn(movieGrade);
 
-        MovieGrade result = movieGradeService.addGrade(movieId, grade);
-
-        assertEquals(movieGrade, result);
-        verify(movieRepository).findById(movieId);
-        verify(movieGradeRepository).save(any(MovieGrade.class));
-    }
 
     @Test
     void getAllMoviesReturnsEmptyListWhenNoMovies() {
@@ -143,16 +125,7 @@ class MovieServiceTest {
         verify(movieRepository).findMoviesByCategory(category);
     }
 
-    @Test
-    void addGradeReturnsNullWhenMovieNotFound() {
-        Long movieId = 1L;
-        int grade = 5;
-        when(movieRepository.findById(movieId)).thenReturn(Optional.empty());
 
-        MovieGrade result = movieGradeService.addGrade(movieId, grade);
-
-        assertNull(result);
-    }
 
     @Test
     void updateMovieTest() {
@@ -177,31 +150,9 @@ class MovieServiceTest {
         assertEquals("test2", result.getTitle());
     }
 
-    @Test
-    void getAvgGradeReturnsNullWhenNoGrades() {
-        Long movieId = 1L;
-        when(movieGradeRepository.findByMovieId(movieId)).thenReturn(List.of());
 
-        Double result = movieGradeService.getAvgGrade(movieId);
 
-        assertNull(result);
-        verify(movieGradeRepository).findByMovieId(movieId);
-    }
 
-    @Test
-    void getAvgGradeReturnsAverageWhenGradesExist() {
-        Long movieId = 12L;
-        MovieGrade grade1 = new MovieGrade();
-        grade1.setGrade(5);
-        MovieGrade grade2 = new MovieGrade();
-        grade2.setGrade(7);
-        when(movieGradeRepository.findByMovieId(movieId)).thenReturn(Arrays.asList(grade1, grade2));
-
-        Double result = movieGradeService.getAvgGrade(movieId);
-
-        assertEquals(6.0, result);
-        verify(movieGradeRepository).findByMovieId(movieId);
-    }
 
     @Test
     void getMovieByIdReturnsMovieWhenExists() {
@@ -215,31 +166,6 @@ class MovieServiceTest {
         verify(movieRepository).findById(id);
     }
 
-    @Test
-    void testGetAvgGrade(){
-        Long movieId = 1L;
-        MovieGrade grade1 = new MovieGrade();
-        grade1.setGrade(4);
-        MovieGrade grade2 = new MovieGrade();
-        grade2.setGrade(6);
-        when(movieGradeRepository.findByMovieId(movieId)).thenReturn(Arrays.asList(grade1, grade2));
-
-        Double result = movieGradeService.getAvgGrade(movieId);
-
-        assertEquals(5.0, result);
-        verify(movieGradeRepository).findByMovieId(movieId);
-    }
-
-    @Test
-    void testGetAvgGradeWithNoGrades() {
-        Long movieId = 2L;
-        when(movieGradeRepository.findByMovieId(movieId)).thenReturn(List.of());
-
-        Double result = movieGradeService.getAvgGrade(movieId);
-
-        assertNull(result);
-        verify(movieGradeRepository).findByMovieId(movieId);
-    }
 
     @Test
     void getMoviesByTagReturnsMoviesWithTag() {
