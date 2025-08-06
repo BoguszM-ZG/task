@@ -10,6 +10,7 @@ import com.tcode.moviebase.Services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,12 +25,24 @@ public class MovieController {
 
     @Operation(summary = "Get all movies", description = "Retrieves a list of all movies in the database.")
     @GetMapping
+    @PreAuthorize("hasRole('client_user')")
     public ResponseEntity<List<Movie>> getAllMovies() {
         var movies = movieService.getAllMovies();
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(movies);
+    }
+
+    @Operation(summary = "Get a movie by ID", description = "Retrieves a movie by its ID from the database.")
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
+    public ResponseEntity<Movie> getMovie(@PathVariable Long id) {
+        var movie = movieService.getMovieById(id);
+        if (movie == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(movie);
     }
 
     @Operation(summary = "Add a new movie", description = "Adds a new movie to the database.")
@@ -53,16 +66,6 @@ public class MovieController {
         }
         movieService.deleteMovie(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Get a movie by ID", description = "Retrieves a movie by its ID from the database.")
-    @GetMapping("/{id}")
-    public ResponseEntity<Movie> getMovie(@PathVariable Long id) {
-        var movie = movieService.getMovieById(id);
-        if (movie == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(movie);
     }
 
 
