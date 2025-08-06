@@ -90,7 +90,7 @@ public class MovieController {
 
     @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
-    public ResponseEntity<?> addMovieGrade(@PathVariable Long id,@RequestParam int grade) {
+    public ResponseEntity<?> addMovieGrade(@PathVariable Long id, @RequestParam int grade) {
         if (grade < 1 || grade > 10) {
             return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
         }
@@ -178,7 +178,10 @@ public class MovieController {
 
     @Operation(summary = "Get movies by polish premiere month and year", description = "Retrieves a list of movies that premiered in a specific month and year.")
     @GetMapping("/polishPremiereMonthAndYear")
-    public ResponseEntity<List<Movie>> getMoviesByPolishPremiereMonthAndYear(@RequestParam int month, @RequestParam int year) {
+    public ResponseEntity<?> getMoviesByPolishPremiereMonthAndYear(@RequestParam int month, @RequestParam int year) {
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest().body("Month must be between 1 and 12.");
+        }
         var movies = movieService.getMoviesByPolishPremiereMonthAndYear(month, year);
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -198,7 +201,39 @@ public class MovieController {
         }
     }
 
+    @Operation(summary = "Get all movies sorted by avg grades desc", description = "Retrieves a list of all movies sorted by their average grades in descending order.")
+    @GetMapping("/sortedByAvgGradeDesc")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getAllMoviesSortedByAvgGradeDesc() {
+        var movies = movieService.getMoviesWithAvgGradeDesc();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
 
+        }
+    }
+    @Operation(summary = "Get all movies sorted by avg grades asc", description = "Retrieves a list of all movies sorted by their average grades in ascending order.")
+    @GetMapping("/sortedByAvgGradeAsc")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getAllMoviesSortedByAvgGradeAsc() {
+        var movies = movieService.getMoviesWithAvgGradeAsc();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get top 10 movies by average grade", description = "Retrieves the top 10 movies sorted by their average grades in descending order.")
+    @GetMapping("/top10ByAvgGrade")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getTop10MoviesByAvgGrade()
+    {
+        var movies = movieService.getTopTenMoviesWithAvgGrade();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
 
 
 
