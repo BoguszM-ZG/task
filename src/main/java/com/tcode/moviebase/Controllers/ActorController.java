@@ -2,16 +2,20 @@ package com.tcode.moviebase.Controllers;
 
 
 import com.tcode.moviebase.Dtos.ActorDto;
+import com.tcode.moviebase.Dtos.ActorWithMoviesDto;
 import com.tcode.moviebase.Entities.Actor;
+import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Repositories.ActorRepository;
 import com.tcode.moviebase.Services.ActorGradeService;
 import com.tcode.moviebase.Services.ActorService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -157,6 +161,33 @@ public class ActorController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(topActors);
+    }
+
+    @Operation(summary = "Get actor details with movies", description = "Retrieves an actor's details along with their movies by actor ID.")
+    @GetMapping("/{id}/actor-movies")
+    public ResponseEntity<ActorWithMoviesDto> getActorDetailsTest(@PathVariable Long id) {
+        var actor = actorService.getActorById(id);
+        if (actor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        var avgGrade = actorGradeService.getAvgGrade(id);
+
+        var testDto = new ActorWithMoviesDto(
+                actor.getGender(),
+                actor.getFirstName(),
+                actor.getLastName(),
+                actor.getAge(),
+                actor.getDateOfBirth(),
+                actor.getPlaceOfBirth(),
+                actor.getHeight(),
+                actor.getBiography(),
+                actor.getCountOfPrizes(),
+                avgGrade,
+                actor.getMovies().stream()
+                        .map(Movie::getTitle)
+                        .toList()
+        );
+        return ResponseEntity.ok(testDto);
     }
 
 }
