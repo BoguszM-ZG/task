@@ -1,6 +1,7 @@
 package com.tcode.moviebase.Controllers;
 
 
+import com.tcode.moviebase.Dtos.ActorDto;
 import com.tcode.moviebase.Entities.Actor;
 import com.tcode.moviebase.Repositories.ActorRepository;
 import com.tcode.moviebase.Services.ActorGradeService;
@@ -103,6 +104,59 @@ public class ActorController {
         }
         var updatedActor = actorService.updateActor(id, actor);
         return ResponseEntity.ok(updatedActor);
+    }
+
+    @Operation(summary = "Get actor with average grade", description = "Retrieves an actor along with their average grade by their ID.")
+    @GetMapping("/{id}/details")
+    public ResponseEntity<ActorDto> getActorDetails(@PathVariable Long id) {
+        var actor = actorService.getActorById(id);
+        if (actor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        var avgGrade = actorGradeService.getAvgGrade(id);
+        var actorDto = new ActorDto(
+                actor.getGender(),
+                actor.getFirstName(),
+                actor.getLastName(),
+                actor.getAge(),
+                actor.getDateOfBirth(),
+                actor.getPlaceOfBirth(),
+                actor.getHeight(),
+                actor.getBiography(),
+                actor.getCountOfPrizes(),
+                avgGrade
+        );
+        return ResponseEntity.ok(actorDto);
+    }
+
+    @Operation(summary = "Get all actors with average grade in desc order", description = "Retrieves a list of all actors with their average grades in desc order.")
+    @GetMapping("/avg-grade/desc")
+    public ResponseEntity<List<ActorDto>> findAllActorsWithAvgGradeDesc() {
+        var actorsWithAvgGrade = actorService.findAllActorsWithAvgGradeDesc();
+        if (actorsWithAvgGrade.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(actorsWithAvgGrade);
+    }
+
+    @Operation(summary = "Get all actors with average grade in asc order", description = "Retrieves a list of all actors with their average grades in asc order.")
+    @GetMapping("/avg-grade/asc")
+    public ResponseEntity<List<ActorDto>> findAllActorsWithAvgGradeAsc() {
+        var actorsWithAvgGrade = actorService.findAllActorsWithAvgGradeAsc();
+        if (actorsWithAvgGrade.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(actorsWithAvgGrade);
+    }
+
+    @Operation(summary = "Get top 10 actors by average grade", description = "Retrieves the top 10 actors with the highest average grades.")
+    @GetMapping("/top-10")
+    public ResponseEntity<List<ActorDto>> findTopTenActorsByAvgGrade() {
+        var topActors = actorService.findTopTenActorsByAvgGrade();
+        if (topActors.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(topActors);
     }
 
 }

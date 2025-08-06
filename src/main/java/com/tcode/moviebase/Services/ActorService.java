@@ -1,6 +1,7 @@
 package com.tcode.moviebase.Services;
 
 
+import com.tcode.moviebase.Dtos.ActorDto;
 import com.tcode.moviebase.Entities.Actor;
 import com.tcode.moviebase.Repositories.ActorRepository;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +46,17 @@ public class ActorService {
         oldActor.setCountOfPrizes(actor.getCountOfPrizes());
 
         return actorRepository.save(oldActor);
+    }
+
+    public List<ActorDto> findAllActorsWithAvgGradeDesc() {
+        return actorRepository.findAllActorsWithAvgGradeDesc();
+    }
+
+    public List<ActorDto> findAllActorsWithAvgGradeAsc() {
+        return actorRepository.findAllActorsWithAvgGradeAsc();
+    }
+
+    public List<ActorDto> findTopTenActorsByAvgGrade() {
+        return actorRepository.findTopTenActorsByAvgGrade();
     }
 }
