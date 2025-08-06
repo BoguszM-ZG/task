@@ -31,4 +31,19 @@ public class ActorService {
     public Actor saveActor(Actor actor) {
         return actorRepository.save(actor);
     }
+
+    public Actor updateActor(Long id, Actor actor) {
+        var oldActor = getActorById(id);
+        oldActor.setGender(actor.getGender());
+        oldActor.setFirstName(actor.getFirstName());
+        oldActor.setLastName(actor.getLastName());
+        oldActor.setAge(actor.getAge());
+        oldActor.setDateOfBirth(actor.getDateOfBirth());
+        oldActor.setPlaceOfBirth(actor.getPlaceOfBirth());
+        oldActor.setHeight(actor.getHeight());
+        oldActor.setBiography(actor.getBiography());
+        oldActor.setCountOfPrizes(actor.getCountOfPrizes());
+
+        return actorRepository.save(oldActor);
+    }
 }

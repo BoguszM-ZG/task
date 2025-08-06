@@ -93,4 +93,16 @@ public class ActorController {
             return ResponseEntity.ok(avgGrade);
         }
     }
+
+
+    @Operation(summary = "Update an actor", description = "Updates an existing actor by its ID.")
+    @PutMapping("/{id}")
+    public ResponseEntity<Actor> updateActor(@PathVariable Long id, @RequestBody Actor actor) {
+        if (!actorRepository.existsById(id)){
+        return ResponseEntity.notFound().build();
+        }
+        var updatedActor = actorService.updateActor(id, actor);
+        return ResponseEntity.ok(updatedActor);
+    }
+
 }
