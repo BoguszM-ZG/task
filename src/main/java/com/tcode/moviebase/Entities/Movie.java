@@ -64,6 +64,9 @@ public class Movie {
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieTrailer> trailers = new ArrayList<>();
 
+    @Column(name = "age_restriction")
+    private Integer ageRestriction;
+
 
 
 }
