@@ -25,7 +25,7 @@ public class MovieController {
 
     @Operation(summary = "Get all movies", description = "Retrieves a list of all movies in the database.")
     @GetMapping
-    @PreAuthorize("hasRole('client_user')")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user') or hasRole('client_junior') or hasRole('client_kid')")
     public ResponseEntity<List<Movie>> getAllMovies() {
         var movies = movieService.getAllMovies();
         if (movies.isEmpty()) {
@@ -36,7 +36,7 @@ public class MovieController {
 
     @Operation(summary = "Get a movie by ID", description = "Retrieves a movie by its ID from the database.")
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('client_admin')")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<Movie> getMovie(@PathVariable Long id) {
         var movie = movieService.getMovieById(id);
         if (movie == null) {
@@ -47,6 +47,7 @@ public class MovieController {
 
     @Operation(summary = "Add a new movie", description = "Adds a new movie to the database.")
     @PostMapping
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> addMovie(@RequestBody Movie movie) {
         if (movie.getTitle() == null || movie.getMovie_year() == null) {
             return ResponseEntity.badRequest().body("Title and year are required fields.");
@@ -59,6 +60,7 @@ public class MovieController {
 
     @Operation(summary = "Delete a movie", description = "Deletes a movie by its ID from the database.")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<Void> deleteMovie(@PathVariable Long id) {
         var exists = movieService.getMovieById(id);
         if (exists == null) {
@@ -71,6 +73,7 @@ public class MovieController {
 
     @Operation(summary = "Get movies by category", description = "Retrieves a list of movies by their category.")
     @GetMapping("/findByCategory/{category}")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<List<Movie>> getMoviesByCategory(@PathVariable String category) {
         var movies = movieService.findByCategory(category);
         if (movies.isEmpty()) {
@@ -82,6 +85,7 @@ public class MovieController {
 
     @Operation(summary = "Search movies by title", description = "Searches for movies by their title.")
     @GetMapping("/findByTitle")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<List<Movie>> getMoviesByTitle(@RequestParam String title) {
         var movies = movieService.search(title);
         if (movies.isEmpty()) {
@@ -93,6 +97,7 @@ public class MovieController {
 
     @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<?> addMovieGrade(@PathVariable Long id, @RequestParam int grade) {
         if (grade < 1 || grade > 10) {
             return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
@@ -111,6 +116,7 @@ public class MovieController {
 
     @Operation(summary = "Update a movie", description = "Updates an existing movie by its ID.")
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<Movie> updateMovie(@PathVariable Long id, @RequestBody Movie movie) {
         if (!movieRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
@@ -123,6 +129,7 @@ public class MovieController {
 
     @Operation(summary = "Get average grade of a movie", description = "Retrieves the average grade of a movie by its ID.")
     @GetMapping("/{id}/average-grade")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<Double> getAverageGrade(@PathVariable Long id) {
         var avgGrade = movieGradeService.getAvgGrade(id);
         if (avgGrade == null) {
@@ -133,6 +140,7 @@ public class MovieController {
 
     @Operation(summary = "Get movie with average grade", description = "Retrieves a movie along with its average grade by its ID.")
     @GetMapping("/{id}/details")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<MovieWithAvgGradeDto> getMovieWithAvgGrade(@PathVariable Long id) {
         var movie = movieService.getMovieById(id);
         if (movie == null) {
@@ -157,6 +165,7 @@ public class MovieController {
 
     @Operation(summary = "Get new movies", description = "Retrieves a list of movies that contain a specific tag.")
     @GetMapping("/findNew")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<List<Movie>> getMoviesByTag() {
         String tag = "new";
         var movies = movieService.getMoviesByTag(tag);
@@ -169,6 +178,7 @@ public class MovieController {
 
     @Operation(summary = "Get movies by premiere year", description = "Retrieves a list of movies that premiered in a specific year.")
     @GetMapping("/premiereYear")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<List<Movie>> getMoviesByPremiereYear(@RequestParam int premiereYear) {
         var movies = movieService.getMoviesByPremiereYear(premiereYear);
         if (movies.isEmpty()) {
