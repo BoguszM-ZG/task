@@ -92,11 +92,7 @@ public class MovieService {
         return movieRepository.findTop10MoviesByAvgGrade();
     }
 
-    public List<Movie> getMoviesForJunior() {
-    return movieRepository.findAll().stream()
-            .filter(movie -> movie.getAgeRestriction() >=0 && movie.getAgeRestriction() <= 16)
-            .toList();
-    }
+
 
 
 }

@@ -2,8 +2,6 @@ package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
-import com.tcode.moviebase.Entities.MovieGrade;
-import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +17,6 @@ import java.util.Optional;
 public class MovieKidService {
 
     private final MovieRepository movieRepository;
-    private  final MovieGradeRepository movieGradeRepository;
 
     public List<Movie> getMoviesForKids() {
         return movieRepository.findAll().stream()

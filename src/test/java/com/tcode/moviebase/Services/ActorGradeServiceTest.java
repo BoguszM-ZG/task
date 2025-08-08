@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,7 +52,7 @@ public class ActorGradeServiceTest {
     @Test
     void testGetAvgGradeWithNoGrades() {
         Long actorId = 2L;
-        when(actorGradeRepository.findByActorId(actorId)).thenReturn(Arrays.asList());
+        when(actorGradeRepository.findByActorId(actorId)).thenReturn(List.of());
 
         var result = actorGradeService.getAvgGrade(actorId);
 
