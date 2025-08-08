@@ -31,20 +31,22 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
             "m.title, m.movie_year, m.category, m.description, m.prizes, " +
-            "m.world_premiere, m.polish_premiere, m.tag, AVG(g.grade)) " +
+            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction,AVG(g.grade)) " +
             "FROM Movie m LEFT JOIN m.movieGrades g " +
             "GROUP BY m.title, m.movie_year, m.category, m.description, " +
-            "m.prizes, m.world_premiere, m.polish_premiere, m.tag " +
-            "ORDER BY AVG(g.grade) DESC")
+            "m.prizes, m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction " +
+            "HAVING AVG(g.grade) IS NOT NULL " +
+            "ORDER BY AVG(g.grade) DESC ")
     List<MovieWithAvgGradeDto> findAllMoviesWithAvgGradeDesc();
 
 
     @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
             "m.title, m.movie_year, m.category, m.description, m.prizes, " +
-            "m.world_premiere, m.polish_premiere, m.tag, AVG(g.grade)) " +
+            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction, AVG(g.grade)) " +
             "FROM Movie m LEFT JOIN m.movieGrades g " +
             "GROUP BY m.title, m.movie_year, m.category, m.description, " +
-            "m.prizes, m.world_premiere, m.polish_premiere, m.tag " +
+            "m.prizes, m.world_premiere, m.polish_premiere, m.tag ,m.ageRestriction " +
+            "HAVING AVG(g.grade) IS NOT NULL " +
             "ORDER BY AVG(g.grade) ASC ")
     List<MovieWithAvgGradeDto> findAllMoviesWithAvgGradeAsc();
 
@@ -52,10 +54,11 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
             "m.title, m.movie_year, m.category, m.description, m.prizes, " +
-            "m.world_premiere, m.polish_premiere, m.tag, AVG(g.grade)) " +
+            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction,AVG(g.grade)) " +
             "FROM Movie m LEFT JOIN m.movieGrades g " +
             "GROUP BY m.title, m.movie_year, m.category, m.description, " +
-            "m.prizes, m.world_premiere, m.polish_premiere, m.tag " +
+            "m.prizes, m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction " +
+            "HAVING AVG(g.grade) IS NOT NULL " +
             "ORDER BY AVG(g.grade) DESC LIMIT 10")
     List<MovieWithAvgGradeDto> findTop10MoviesByAvgGrade();
 

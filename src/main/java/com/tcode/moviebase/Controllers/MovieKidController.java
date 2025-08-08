@@ -1,9 +1,11 @@
 package com.tcode.moviebase.Controllers;
 
 
+import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
-import com.tcode.moviebase.Repositories.MovieRepository;
+import com.tcode.moviebase.Services.MovieGradeService;
 import com.tcode.moviebase.Services.MovieKidService;
+import com.tcode.moviebase.Services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +18,10 @@ import java.util.Optional;
 @RequestMapping("/movies/kids")
 @RequiredArgsConstructor
 public class MovieKidController {
-    private final MovieRepository movieRepository;
+
     private final MovieKidService movieKidService;
+    private final MovieService movieService;
+    private final MovieGradeService movieGradeService;
 
 
     @Operation(summary = "Get all movies suitable for kids", description = "Returns a list of movies that are suitable for kids, with an age restriction of 0.")
@@ -55,7 +59,7 @@ public class MovieKidController {
 
     @Operation(summary = "Search movies by title for kids", description = "Returns a list of movies that are suitable for kids and match the specified title, with an age restriction of 0.")
     @GetMapping("/findByTitle")
-    public ResponseEntity<List<Movie>> getMoviesByTitle(@RequestParam String title) {
+    public ResponseEntity<List<Movie>> getMoviesByTitleForKids(@RequestParam String title) {
         var movies = movieKidService.searchForKids(title);
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -66,7 +70,7 @@ public class MovieKidController {
 
     @Operation(summary = "Get movies with new tag for kids", description = "Returns a list of movies that are suitable for kids and match the specified tag, with an age restriction of 0.")
     @GetMapping("/findNew")
-    public ResponseEntity<List<Movie>> getMoviesByTag() {
+    public ResponseEntity<List<Movie>> getMoviesByTagForKids() {
         String tag = "new";
         var movies = movieKidService.findMoviesForKidsByTag(tag);
         if (movies.isEmpty()) {
@@ -106,6 +110,88 @@ public class MovieKidController {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get movies with average grade in descending order for kids", description = "Returns a list of movies that are suitable for kids, sorted by average grade in descending order, with an age restriction of 0.")
+    @GetMapping("/avgGradeDesc")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getMoviesWithAvgGradeDescForKids() {
+        var movies = movieKidService.getMoviesWithAvgGradeDescForKids();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get movies with average grade in ascending order for kids", description = "Returns a list of movies that are suitable for kids, sorted by average grade in ascending order, with an age restriction of 0.")
+    @GetMapping("/avgGradeAsc")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getMoviesWithAvgGradeAscForKids() {
+        var movies = movieKidService.getMoviesWithAvgGradeAscForKids();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get top ten movies with average grade for kids", description = "Returns a list of the top ten movies that are suitable for kids, sorted by average grade, with an age restriction of 0.")
+    @GetMapping("/topTen")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getTopTenMoviesWithAvgGradeForKids() {
+        var movies = movieKidService.getTopTenMoviesWithAvgGradeForKids();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get kids movie with average grade", description = "Retrieves a kids movie (age restriction 0) along with its average grade by its ID.")
+    @GetMapping("/{id}/details")
+    public ResponseEntity<?> getKidsMovieWithAvgGrade(@PathVariable Long id) {
+        var movie = movieService.getMovieById(id);
+        if (movie == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (movie.getAgeRestriction() != 0) {
+            return ResponseEntity.status(403).body("u cannot access this movie, it is not suitable for kids");
+        }
+        Double avgGrade = movieGradeService.getAvgGrade(id);
+
+        var movieWithAvgGradeDto = new MovieWithAvgGradeDto(
+                movie.getTitle(),
+                movie.getMovie_year(),
+                movie.getCategory(),
+                movie.getDescription(),
+                movie.getPrizes(),
+                movie.getWorld_premiere(),
+                movie.getPolish_premiere(),
+                movie.getTag(),
+                movie.getAgeRestriction(),
+                avgGrade
+        );
+        return ResponseEntity.ok(movieWithAvgGradeDto);
+    }
+
+    @Operation(summary = "Add a grade to a kids movie", description = "Adds a grade to a kids movie (age restriction 0) by movie ID and returns the average grade.")
+    @PostMapping("/{id}/grade")
+    public ResponseEntity<?> addKidsMovieGrade(@PathVariable Long id, @RequestParam int grade) {
+        if (grade < 1 || grade > 10) {
+            return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
+        }
+        var movie = movieService.getMovieById(id);
+        if (movie == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (movie.getAgeRestriction() != 0) {
+            return ResponseEntity.status(403).body("Movie is not for kids.");
+        }
+        var movieGrade = movieGradeService.addGrade(id, grade);
+        if (movieGrade == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            var avgGrade = movieGradeService.getAvgGrade(id);
+            return ResponseEntity.status(201).body(avgGrade);
         }
     }
 

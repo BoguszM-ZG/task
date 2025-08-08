@@ -243,8 +243,8 @@ class MovieServiceTest {
 
     @Test
     void testGetMoviesWithAvgGradeSortedDesc() {
-        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 4.5);
-        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 3.8);
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 0,4.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 0,3.8);
         when(movieRepository.findAllMoviesWithAvgGradeDesc()).thenReturn(Arrays.asList(m1, m2));
 
         List<MovieWithAvgGradeDto> result = movieService.getMoviesWithAvgGradeDesc();
@@ -257,8 +257,8 @@ class MovieServiceTest {
 
     @Test
     void testGetMoviesWithAvgGradeSortedAsc() {
-        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 2.5);
-        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 3.8);
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 0,2.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 0,3.8);
         when(movieRepository.findAllMoviesWithAvgGradeAsc()).thenReturn(Arrays.asList(m1, m2));
 
         List<MovieWithAvgGradeDto> result = movieService.getMoviesWithAvgGradeAsc();
@@ -271,8 +271,8 @@ class MovieServiceTest {
 
     @Test
     void testGetTop10MoviesByAvgGrade() {
-        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 4.5);
-        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 3.8);
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 0,4.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 0,3.8);
         when(movieRepository.findTop10MoviesByAvgGrade()).thenReturn(Arrays.asList(m1, m2));
 
         List<MovieWithAvgGradeDto> result = movieService.getTopTenMoviesWithAvgGrade();

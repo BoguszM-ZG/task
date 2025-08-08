@@ -157,6 +157,7 @@ public class MovieController {
                 movie.getWorld_premiere(),
                 movie.getPolish_premiere(),
                 movie.getTag(),
+                movie.getAgeRestriction(),
                 avgGrade
         );
         return ResponseEntity.ok(movieWithAvgGradeDto);
@@ -246,17 +247,6 @@ public class MovieController {
     public ResponseEntity<List<MovieWithAvgGradeDto>> getTop10MoviesByAvgGrade()
     {
         var movies = movieService.getTopTenMoviesWithAvgGrade();
-        if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.ok(movies);
-        }
-    }
-
-    @GetMapping("/junior")
-    @PreAuthorize("hasRole('client_admin') or hasRole('client_junior') or hasRole('client_user')")
-    public ResponseEntity<List<Movie>> getMoviesForJunior() {
-        var movies = movieService.getMoviesForJunior();
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {

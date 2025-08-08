@@ -19,5 +19,6 @@ public class MovieWithAvgGradeDto {
     private LocalDate world_premiere;
     private LocalDate polish_premiere;
     private String tag;
+    private Integer ageRestriction;
     private Double avgGrade;
 }
