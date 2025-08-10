@@ -8,6 +8,7 @@ import com.tcode.moviebase.Services.ActorService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class ActorController {
 
     @Operation(summary = "Delete an actor", description = "Deletes an actor by its ID from the database.")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<Void> deleteActor(@PathVariable Long id) {
         var exists = actorService.getActorById(id);
         if (exists == null) {
@@ -55,6 +57,7 @@ public class ActorController {
 
     @Operation(summary = "Add a new actor", description = "Adds a new actor to the database.")
     @PostMapping
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> addActor(@RequestBody Actor actor) {
         if (actor.getFirstName() == null || actor.getLastName() == null || actor.getGender() == null) {
             return ResponseEntity.badRequest().body("First name, last name and gender are required fields.");
@@ -97,6 +100,7 @@ public class ActorController {
 
     @Operation(summary = "Update an actor", description = "Updates an existing actor by its ID.")
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<Actor> updateActor(@PathVariable Long id, @RequestBody Actor actor) {
         if (!actorRepository.existsById(id)){
         return ResponseEntity.notFound().build();
