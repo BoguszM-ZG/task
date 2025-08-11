@@ -55,7 +55,7 @@ public class MovieGradeTestService {
 
         Double result = movieGradeService.getAvgGrade(movieId);
 
-        assertNull(result);
+        assertEquals(0.0, result);
         verify(movieGradeRepository).findByMovieId(movieId);
     }
 
@@ -66,7 +66,7 @@ public class MovieGradeTestService {
 
         Double result = movieGradeService.getAvgGrade(movieId);
 
-        assertNull(result);
+        assertEquals(0.0, result);
         verify(movieGradeRepository).findByMovieId(movieId);
     }
 

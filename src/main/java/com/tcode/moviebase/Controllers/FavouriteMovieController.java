@@ -138,4 +138,39 @@ public class FavouriteMovieController {
         return ResponseEntity.ok(movies);
     }
 
+    @GetMapping("/sortByTitleZ-A")
+    @Operation(summary = "Get favourite movies sorted by title in descending order", description = "Retrieves the user's favourite movies sorted by title in descending order. Requires authentication.")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getFavouriteMoviesByTitleDesc(@AuthenticationPrincipal Jwt jwt) {
+        var userId = jwt.getClaimAsString("sub");
+        var movies = favouriteService.getFavouriteMoviesByTitleZ_A(userId);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(movies);
+    }
+
+    @GetMapping("/sortByTitleA-Z")
+    @Operation(summary = "Get favourite movies sorted by title in ascending order", description = "Retrieves the user's favourite movies sorted by title in ascending order. Requires authentication.")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getFavouriteMoviesByTitleAsc(@AuthenticationPrincipal Jwt jwt) {
+        var userId = jwt.getClaimAsString("sub");
+        var movies = favouriteService.getFavouriteMoviesByTitleA_Z(userId);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(movies);
+    }
+
+    @GetMapping("/category")
+    @Operation(summary = "Get favourite movies by category", description = "Retrieves the user's favourite movies filtered by category. Requires authentication.")
+    public ResponseEntity<?> getFavouriteMoviesByCategory(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam String category) {
+        var userId = jwt.getClaimAsString("sub");
+        var movies = favouriteService.getFavouriteMoviesByCategory(userId, category);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(movies);
+    }
+
 }

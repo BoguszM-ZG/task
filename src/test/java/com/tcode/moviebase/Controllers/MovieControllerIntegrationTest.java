@@ -272,7 +272,7 @@ class MovieControllerIntegrationTest {
         assertEquals(savedMovie.getDescription(), response.getDescription());
         assertEquals(savedMovie.getMovie_year(), response.getMovie_year());
         assertEquals(savedMovie.getPrizes(), response.getPrizes());
-        assertNull(response.getAvgGrade());
+        assertEquals(0.0 , response.getAvgGrade());
     }
 
     @Test

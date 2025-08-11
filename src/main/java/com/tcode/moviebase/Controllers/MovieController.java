@@ -131,6 +131,9 @@ public class MovieController {
     @GetMapping("/{id}/average-grade")
     @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<Double> getAverageGrade(@PathVariable Long id) {
+        if (!movieRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
         var avgGrade = movieGradeService.getAvgGrade(id);
         if (avgGrade == null) {
             return ResponseEntity.notFound().build();
@@ -253,6 +256,7 @@ public class MovieController {
             return ResponseEntity.ok(movies);
         }
     }
+
 
 
 

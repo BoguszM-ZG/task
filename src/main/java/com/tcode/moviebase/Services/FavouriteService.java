@@ -1,5 +1,6 @@
 package com.tcode.moviebase.Services;
 
+import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.FavouriteMovie;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Repositories.FavouriteMovieRepository;
@@ -46,6 +47,18 @@ public class FavouriteService {
 
     public List<Movie> getFavouriteMoviesByCreatedAtOldest(String userId) {
         return favouriteMovieRepository.findMoviesByCreatedAt_Oldest(userId);
+    }
+
+    public List<MovieWithAvgGradeDto> getFavouriteMoviesByTitleZ_A(String userId) {
+        return favouriteMovieRepository.findFavouriteMoviesByTitleZ_A(userId);
+    }
+
+    public List<MovieWithAvgGradeDto> getFavouriteMoviesByTitleA_Z(String userId) {
+        return favouriteMovieRepository.findFavouriteMoviesByTitleA_Z(userId);
+    }
+
+    public List<MovieWithAvgGradeDto> getFavouriteMoviesByCategory(String userId, String category) {
+        return favouriteMovieRepository.findFavouriteMoviesByCategory(userId, category);
     }
 
 }

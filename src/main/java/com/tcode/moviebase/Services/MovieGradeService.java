@@ -27,7 +27,7 @@ public class MovieGradeService {
     public Double getAvgGrade(Long movieId) {
         List<MovieGrade> grades = movieGradeRepository.findByMovieId(movieId);
         if (grades.isEmpty()) {
-            return null;
+            return 0.0;
         }
 
         var result = grades.stream().mapToDouble(MovieGrade::getGrade).sum();
