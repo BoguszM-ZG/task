@@ -16,4 +16,11 @@ public interface FavouriteMovieRepository extends JpaRepository<FavouriteMovie, 
     List<Movie> findMoviesByUserId(@Param("userId") String userId);
 
 
+
+    @Query("SELECT fm.movie FROM FavouriteMovie fm WHERE fm.userId = :userID ORDER BY fm.createdAt DESC")
+    List<Movie> findMoviesByCreatedAt_Latest(@Param("userID") String userID);
+
+
+    @Query("SELECT fm.movie FROM FavouriteMovie fm WHERE fm.userId = :userID ORDER BY fm.createdAt ASC")
+    List<Movie> findMoviesByCreatedAt_Oldest(@Param("userID") String userID);
 }

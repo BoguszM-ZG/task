@@ -49,8 +49,8 @@ public class MovieController {
     @PostMapping
     @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> addMovie(@RequestBody Movie movie) {
-        if (movie.getTitle() == null || movie.getMovie_year() == null) {
-            return ResponseEntity.badRequest().body("Title and year are required fields.");
+        if (movie.getTitle() == null || movie.getMovie_year() == null || movie.getAgeRestriction() == null) {
+            return ResponseEntity.badRequest().body("Title, year and age restriction are required fields.");
         }
 
         var movieAdded = movieService.addMovie(movie);

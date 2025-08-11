@@ -87,4 +87,55 @@ public class FavouriteMovieController {
         favouriteService.removeFavouriteMovie(userId, movieId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/latest")
+    @Operation(summary = "Get favourite movies by creation date", description = "Retrieves the user's favourite movies ordered by creation date in descending order. Requires authentication.")
+    @ResponseBody
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getFavouriteMoviesByCreatedAtChronology(@AuthenticationPrincipal Jwt jwt) {
+        var userId = jwt.getClaimAsString("sub");
+        var movies = favouriteService.getFavouriteMoviesByCreatedAtNewest(userId).stream()
+                .map(m -> new MovieWithAvgGradeDto(
+                        m.getTitle(),
+                        m.getMovie_year(),
+                        m.getCategory(),
+                        m.getDescription(),
+                        m.getPrizes(),
+                        m.getWorld_premiere(),
+                        m.getPolish_premiere(),
+                        m.getTag(),
+                        m.getAgeRestriction(),
+                        movieGradeService.getAvgGrade(m.getId())
+                ))
+                .toList();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(movies);
+    }
+
+    @GetMapping("/oldest")
+    @Operation(summary = "Get favourite movies by creation date", description = "Retrieves the user's favourite movies ordered by creation date in ascending order. Requires authentication.")
+    @ResponseBody
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getFavouriteMoviesByCreatedAtOldest(@AuthenticationPrincipal Jwt jwt) {
+        var userId = jwt.getClaimAsString("sub");
+        var movies = favouriteService.getFavouriteMoviesByCreatedAtOldest(userId).stream()
+                .map(m -> new MovieWithAvgGradeDto(
+                        m.getTitle(),
+                        m.getMovie_year(),
+                        m.getCategory(),
+                        m.getDescription(),
+                        m.getPrizes(),
+                        m.getWorld_premiere(),
+                        m.getPolish_premiere(),
+                        m.getTag(),
+                        m.getAgeRestriction(),
+                        movieGradeService.getAvgGrade(m.getId())
+                ))
+                .toList();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(movies);
+    }
+
 }

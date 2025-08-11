@@ -1,4 +1,4 @@
-create table favourite_movies
+create table movies.favourite_movies
 (
     id       BIGINT auto_increment
         primary key,

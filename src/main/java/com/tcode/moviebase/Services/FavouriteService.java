@@ -40,4 +40,12 @@ public class FavouriteService {
         return favouriteMovieRepository.existsByUserIdAndMovieId(userId, movieId);
     }
 
+    public List<Movie> getFavouriteMoviesByCreatedAtNewest(String userId) {
+        return favouriteMovieRepository.findMoviesByCreatedAt_Latest(userId);
+    }
+
+    public List<Movie> getFavouriteMoviesByCreatedAtOldest(String userId) {
+        return favouriteMovieRepository.findMoviesByCreatedAt_Oldest(userId);
+    }
+
 }

@@ -48,6 +48,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         Movie response = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -62,6 +63,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -78,6 +80,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -99,6 +102,7 @@ class MovieControllerIntegrationTest {
         movie1.setDescription("This is a test movie description 1.");
         movie1.setMovie_year(2023);
         movie1.setPrizes("oscar");
+        movie1.setAgeRestriction(0);
 
         var movie2 = new Movie();
         movie2.setTitle("Test2");
@@ -106,6 +110,7 @@ class MovieControllerIntegrationTest {
         movie2.setDescription("This is a test movie description 2.");
         movie2.setMovie_year(2023);
         movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
 
         restTemplate.postForObject(baseUrl, movie1, Movie.class);
         restTemplate.postForObject(baseUrl, movie2, Movie.class);
@@ -126,6 +131,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description for Action category.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -145,6 +151,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description for Drama category.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -164,6 +171,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description for Drama category.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         var savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -181,6 +189,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         var savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -190,6 +199,7 @@ class MovieControllerIntegrationTest {
         movie1.setDescription("This is a test movie description.");
         movie1.setMovie_year(2023);
         movie1.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         restTemplate.put(baseUrl + "/" + savedMovie.getId(), movie1);
 
@@ -217,6 +227,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -249,6 +260,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -272,6 +284,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("Updated Description");
         movie.setMovie_year(2023);
         movie.setPrizes("Updated Prizes");
+        movie.setAgeRestriction(0);
 
         try {
             restTemplate.put(baseUrl + "/" + nonExistentMovieId, movie);
@@ -346,6 +359,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -367,6 +381,7 @@ class MovieControllerIntegrationTest {
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
         movie.setTag("new");
+        movie.setAgeRestriction(0);
 
         Movie savedMovie = restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -388,6 +403,7 @@ class MovieControllerIntegrationTest {
         movie.setDescription("This is a test movie description.");
         movie.setMovie_year(premiereYear);
         movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
 
         restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -411,6 +427,7 @@ class MovieControllerIntegrationTest {
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
         movie.setPolish_premiere(java.time.LocalDate.of(year, month, 15));
+        movie.setAgeRestriction(0);
 
         restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -435,6 +452,7 @@ class MovieControllerIntegrationTest {
         movie.setMovie_year(2023);
         movie.setPrizes("oscar");
         movie.setWorld_premiere(java.time.LocalDate.of(year, month, 20));
+        movie.setAgeRestriction(0);
 
         restTemplate.postForObject(baseUrl, movie, Movie.class);
 
@@ -483,6 +501,7 @@ class MovieControllerIntegrationTest {
         movie1.setDescription("This is a test movie description 1.");
         movie1.setMovie_year(2023);
         movie1.setPrizes("oscar");
+        movie1.setAgeRestriction(0);
 
         var movie2 = new Movie();
         movie2.setTitle("Test2");
@@ -490,6 +509,7 @@ class MovieControllerIntegrationTest {
         movie2.setDescription("This is a test movie description 2.");
         movie2.setMovie_year(2023);
         movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
 
         var savedMovie1 = restTemplate.postForObject(baseUrl, movie1, Movie.class);
         var savedMovie2 = restTemplate.postForObject(baseUrl, movie2, Movie.class);
@@ -517,6 +537,7 @@ class MovieControllerIntegrationTest {
         movie1.setDescription("This is a test movie description 1.");
         movie1.setMovie_year(2023);
         movie1.setPrizes("oscar");
+        movie1.setAgeRestriction(0);
 
         var movie2 = new Movie();
         movie2.setTitle("Test2");
@@ -524,6 +545,7 @@ class MovieControllerIntegrationTest {
         movie2.setDescription("This is a test movie description 2.");
         movie2.setMovie_year(2023);
         movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
 
         var savedMovie1 = restTemplate.postForObject(baseUrl, movie1, Movie.class);
         var savedMovie2 = restTemplate.postForObject(baseUrl, movie2, Movie.class);
@@ -544,6 +566,7 @@ class MovieControllerIntegrationTest {
         movie1.setDescription("This is a test movie description 1.");
         movie1.setMovie_year(2023);
         movie1.setPrizes("oscar");
+        movie1.setAgeRestriction(0);
 
         var movie2 = new Movie();
         movie2.setTitle("Test12");
@@ -551,6 +574,7 @@ class MovieControllerIntegrationTest {
         movie2.setDescription("This is a test movie description 2.");
         movie2.setMovie_year(2023);
         movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
 
         var savedMovie1 = restTemplate.postForObject(baseUrl, movie1, Movie.class);
         var savedMovie2 = restTemplate.postForObject(baseUrl, movie2, Movie.class);
