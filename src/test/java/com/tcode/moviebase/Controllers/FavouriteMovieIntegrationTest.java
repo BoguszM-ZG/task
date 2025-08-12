@@ -349,6 +349,182 @@ public class FavouriteMovieIntegrationTest {
 
     }
 
+    @Test
+    public void testFavouriteMovieForKids() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Kids");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(0);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        ResponseEntity<?> response = restTemplate.postForEntity(
+                baseUrl + "/kids/add/" + movieId, request, MovieWithAvgGradeDto.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+    @Test
+    public void testAddFavouriteMovieForKidWhichIsForAdult() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Kids");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(18);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/kids/add/" + movieId, request, MovieWithAvgGradeDto.class);
+        }catch (HttpClientErrorException e){
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("This movie is not suitable for kids", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    public void testAddFavouriteMovieAlreadyExistsForKids() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Kids");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(0);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        restTemplate.postForEntity(baseUrl + "/kids/add/" + movieId, request, MovieWithAvgGradeDto.class);
+
+        try {
+            restTemplate.postForEntity(baseUrl + "/kids/add/" + movieId, request, MovieWithAvgGradeDto.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Movie already in favourites", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    public void testAddFavouriteMovieForJuniors() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Kids");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(17);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        ResponseEntity<?> response = restTemplate.postForEntity(
+                baseUrl + "/juniors/add/" + movieId, request, MovieWithAvgGradeDto.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testAddToWatchMovieForJuniorWhichIsForAdult() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Kids");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(18);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/juniors/add/" + movieId, request, MovieWithAvgGradeDto.class);
+        }catch (HttpClientErrorException e){
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("This movie is not suitable for juniors", e.getResponseBodyAsString());
+        }
+    }
+    @Test
+    public void testFavouriteMovieAlreadyExistsForJuniors() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Kids");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(0);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        restTemplate.postForEntity(baseUrl + "/juniors/add/" + movieId, request, MovieWithAvgGradeDto.class);
+
+        try {
+            restTemplate.postForEntity(baseUrl + "/juniors/add/" + movieId, request, MovieWithAvgGradeDto.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Movie already in favourites", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    public void testAddFavouriteMovieNotFoundForJuniors() {
+        Long nonExistentMovieId = 999L;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+
+        try {
+            ResponseEntity<?> response = restTemplate.postForEntity(
+                    baseUrl + "/juniors/add/" + nonExistentMovieId, request, MovieWithAvgGradeDto.class);
+            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            assertEquals("Movie not found with id: " + nonExistentMovieId, response.getBody());
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+        }
+    }
+
+    @Test
+    public void testAddFavouriteMovieNotFoundForKIds() {
+        Long nonExistentMovieId = 999L;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+
+        try {
+            ResponseEntity<?> response = restTemplate.postForEntity(
+                    baseUrl + "/kids/add/" + nonExistentMovieId, request, MovieWithAvgGradeDto.class);
+            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            assertEquals("Movie not found with id: " + nonExistentMovieId, response.getBody());
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+        }
+    }
+
 
 
 
