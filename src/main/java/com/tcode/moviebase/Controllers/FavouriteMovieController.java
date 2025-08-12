@@ -10,6 +10,7 @@ import com.tcode.moviebase.Services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,8 @@ public class FavouriteMovieController {
     private final MovieGradeService movieGradeService;
 
 
-    @Operation(summary = "Add a movie to favourites", description = "Adds a movie to the user's favourites list. Requires authentication.")
+    @Operation(summary = "Add a movie to favourites for adults", description = "Adds a movie to the user's favourites list. Requires authentication.")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     @PostMapping("/add/{movieId}")
     public ResponseEntity<?> addFavouriteMovie(@AuthenticationPrincipal Jwt jwt, @PathVariable Long movieId) {
         if (movieService.getMovieById(movieId) == null) {
@@ -172,5 +174,71 @@ public class FavouriteMovieController {
         }
         return ResponseEntity.ok(movies);
     }
+
+
+    ///////////////////////////////////////
+    /// kids///
+    //////////////////////////////////////
+    @Operation(summary = "Add a movie to favourites for kids", description = "Adds a movie to the kid favourites list. Requires authentication.")
+    @PostMapping("/kids/add/{movieId}")
+    public ResponseEntity<?> addFavouriteMovieForKids(@AuthenticationPrincipal Jwt jwt, @PathVariable Long movieId) {
+        if (movieService.getMovieById(movieId) == null) {
+            return ResponseEntity.badRequest().body("Movie not found with id: " + movieId);
+        }
+        if (movieService.getMovieById(movieId).getAgeRestriction() != 0) {
+            return ResponseEntity.badRequest().body("This movie is not suitable for kids");
+        }
+        if (favouriteService.existsFavouriteMovie(jwt.getClaimAsString("sub"), movieId)) {
+            return ResponseEntity.badRequest().body("Movie already in favourites");
+        }
+        var userId = jwt.getClaimAsString("sub");
+        var movie = favouriteService.addFavouriteMovie(userId, movieId);
+        var movieDto = new MovieWithAvgGradeDto(
+                movie.getTitle(),
+                movie.getMovie_year(),
+                movie.getCategory(),
+                movie.getDescription(),
+                movie.getPrizes(),
+                movie.getWorld_premiere(),
+                movie.getPolish_premiere(),
+                movie.getTag(),
+                movie.getAgeRestriction(),
+                movieGradeService.getAvgGrade(movieId)
+        );
+        return ResponseEntity.ok(movieDto);
+    }
+    ///////////////////////////
+    //////////juniors
+    ///////////////////////////
+    @Operation(summary = "Add a movie to favourites for juniors", description = "Adds a movie to the junior favourites list. Requires authentication.")
+    @PreAuthorize("hasRole('client_junior') or hasRole('client_admin') or hasRole('client_user')")
+    @PostMapping("/juniors/add/{movieId}")
+    public ResponseEntity<?> addFavouriteMovieForJuniors(@AuthenticationPrincipal Jwt jwt, @PathVariable Long movieId) {
+        if (movieService.getMovieById(movieId) == null) {
+            return ResponseEntity.badRequest().body("Movie not found with id: " + movieId);
+        }
+        if (movieService.getMovieById(movieId).getAgeRestriction() > 17) {
+            return ResponseEntity.badRequest().body("This movie is not suitable for juniors");
+        }
+        if (favouriteService.existsFavouriteMovie(jwt.getClaimAsString("sub"), movieId)) {
+            return ResponseEntity.badRequest().body("Movie already in favourites");
+        }
+        var userId = jwt.getClaimAsString("sub");
+        var movie = favouriteService.addFavouriteMovie(userId, movieId);
+        var movieDto = new MovieWithAvgGradeDto(
+                movie.getTitle(),
+                movie.getMovie_year(),
+                movie.getCategory(),
+                movie.getDescription(),
+                movie.getPrizes(),
+                movie.getWorld_premiere(),
+                movie.getPolish_premiere(),
+                movie.getTag(),
+                movie.getAgeRestriction(),
+                movieGradeService.getAvgGrade(movieId)
+        );
+        return ResponseEntity.ok(movieDto);
+    }
+
 
 }

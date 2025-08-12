@@ -7,6 +7,7 @@ import com.tcode.moviebase.Services.ToWatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +48,7 @@ public class ToWatchController {
     }
 
     @Operation(summary = "Add a movie to watch list", description = "Adds a movie to the user's watch list. Requires authentication.")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     @PostMapping("/add/{movieId}")
     public ResponseEntity<?> addToWatchMovie(@AuthenticationPrincipal Jwt jwt, @PathVariable Long movieId) {
         if (movieService.getMovieById(movieId) == null) {
@@ -166,6 +168,78 @@ public class ToWatchController {
         return ResponseEntity.ok(movies);
     }
 
+
+    ////////////////////
+    /////kids
+    ////////////////////
+
+    @Operation(summary = "Add a movie to kid's watch list", description = "Adds a movie to the kids's watch list. Requires authentication.")
+    @PostMapping("/kids/add/{movieId}")
+    public ResponseEntity<?> addToWatchMovieForKids(@AuthenticationPrincipal Jwt jwt, @PathVariable Long movieId) {
+        if (movieService.getMovieById(movieId) == null) {
+            return ResponseEntity.badRequest().body("Movie not found with id: " + movieId);
+        }
+        if (movieService.getMovieById(movieId).getAgeRestriction() != 0) {
+            return ResponseEntity.badRequest().body("Movie is not suitable for kids");
+        }
+        if (toWatchService.existsToWatchMovie(jwt.getClaimAsString("sub"), movieId)) {
+            return ResponseEntity.badRequest().body("Movie already in watch list");
+        }
+        var userId = jwt.getClaimAsString("sub");
+        var movie = toWatchService.addToWatchMovie(userId, movieId);
+        if (movie == null) {
+            return ResponseEntity.badRequest().body("Movie not found with id: " + movieId);
+        }
+        var movieDto = new MovieWithAvgGradeDto(
+                movie.getTitle(),
+                movie.getMovie_year(),
+                movie.getCategory(),
+                movie.getDescription(),
+                movie.getPrizes(),
+                movie.getWorld_premiere(),
+                movie.getPolish_premiere(),
+                movie.getTag(),
+                movie.getAgeRestriction(),
+                movieGradeService.getAvgGrade(movie.getId())
+        );
+        return ResponseEntity.ok(movieDto);
+    }
+
+    ///////////////
+    /// juniors
+    ////////////////
+    @Operation(summary = "Add a movie to junior's watch list", description = "Adds a movie to the junior's watch list. Requires authentication.")
+    @PreAuthorize("hasRole('client_junior') or hasRole('client_admin') or hasRole('client_user')")
+    @PostMapping("/juniors/add/{movieId}")
+    public ResponseEntity<?> addToWatchMovieForJuniors(@AuthenticationPrincipal Jwt jwt, @PathVariable Long movieId) {
+        if (movieService.getMovieById(movieId) == null) {
+            return ResponseEntity.badRequest().body("Movie not found with id: " + movieId);
+        }
+        if (movieService.getMovieById(movieId).getAgeRestriction() > 17) {
+            return ResponseEntity.badRequest().body("Movie is not suitable for juniors");
+        }
+        if (toWatchService.existsToWatchMovie(jwt.getClaimAsString("sub"), movieId)) {
+            return ResponseEntity.badRequest().body("Movie already in watch list");
+        }
+        var userId = jwt.getClaimAsString("sub");
+        var movie = toWatchService.addToWatchMovie(userId, movieId);
+        if (movie == null) {
+            return ResponseEntity.badRequest().body("Movie not found with id: " + movieId);
+        }
+        var movieDto = new MovieWithAvgGradeDto(
+                movie.getTitle(),
+                movie.getMovie_year(),
+                movie.getCategory(),
+                movie.getDescription(),
+                movie.getPrizes(),
+                movie.getWorld_premiere(),
+                movie.getPolish_premiere(),
+                movie.getTag(),
+                movie.getAgeRestriction(),
+                movieGradeService.getAvgGrade(movie.getId())
+        );
+        return ResponseEntity.ok(movieDto);
+    }
 
 
 }
