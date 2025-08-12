@@ -4,6 +4,7 @@ import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
+import com.tcode.moviebase.Repositories.WatchedMoviesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ public class MovieService {
     private final MovieGradeRepository movieGradeRepository;
     private final MovieRepository movieRepository;
     private final MovieGradeService movieGradeService;
+    private final WatchedMoviesRepository watchedMoviesRepository;
 
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
@@ -90,6 +92,16 @@ public class MovieService {
     }
     public List<MovieWithAvgGradeDto> getTopTenMoviesWithAvgGrade() {
         return movieRepository.findTop10MoviesByAvgGrade();
+    }
+
+
+    public List<MovieWithAvgGradeDto> getMoviesPropositionForUser(String userId) {
+        var movies = watchedMoviesRepository.findMoviesByUserId(userId);
+        List<String> categories = movies.stream()
+                .map(Movie::getCategory)
+                .distinct()
+                .toList();
+        return movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, movies);
     }
 
 

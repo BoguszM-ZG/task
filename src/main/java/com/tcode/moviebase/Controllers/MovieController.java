@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -250,6 +252,23 @@ public class MovieController {
     public ResponseEntity<List<MovieWithAvgGradeDto>> getTop10MoviesByAvgGrade()
     {
         var movies = movieService.getTopTenMoviesWithAvgGrade();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+
+    @Operation(summary = "Get movie propositions for user", description = "Retrieves movie propositions based on the user's watched movies.")
+    @GetMapping("/propositions")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
+    public ResponseEntity<?> getMoviePropositionsForUser(@AuthenticationPrincipal Jwt jwt){
+        String userId = jwt.getClaimAsString("sub");
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("User ID is required.");
+        }
+        var movies = movieService.getMoviesPropositionForUser(userId);
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {

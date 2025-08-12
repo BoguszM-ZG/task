@@ -74,4 +74,23 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @Query("SELECT m FROM Movie m WHERE m.polish_premiere = :polish_premiere")
     List<Movie> findMovieByPolish_premiere(LocalDate polish_premiere);
+
+    @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
+            "m.title, m.movie_year, m.category, m.description, m.prizes, " +
+            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction, AVG(g.grade)) " +
+            "FROM Movie m LEFT JOIN m.movieGrades g " +
+            "WHERE m.category IN :categories " +
+            "GROUP BY m.title, m.movie_year, m.category, m.description, " +
+            "m.prizes, m.world_premiere, m.polish_premiere, m.tag ,m.ageRestriction ")
+    List<MovieWithAvgGradeDto> findMoviesPropositionByCategories(List<String> categories);
+
+
+    @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
+            "m.title, m.movie_year, m.category, m.description, m.prizes, " +
+            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction, AVG(g.grade)) " +
+            "FROM Movie m LEFT JOIN m.movieGrades g " +
+            "WHERE m.category IN :categories AND m NOT IN :movies " +
+            "GROUP BY m.title, m.movie_year, m.category, m.description, " +
+            "m.prizes, m.world_premiere, m.polish_premiere, m.tag ,m.ageRestriction ")
+    List<MovieWithAvgGradeDto> findMoviesPropositionByCategoriesDontIncludeWatchedMovies(List<String> categories, List<Movie> movies);
 }

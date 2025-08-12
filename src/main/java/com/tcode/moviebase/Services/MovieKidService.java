@@ -3,6 +3,7 @@ package com.tcode.moviebase.Services;
 import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Repositories.MovieRepository;
+import com.tcode.moviebase.Repositories.WatchedMoviesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,13 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 
-
-
 @Service
 @RequiredArgsConstructor
 public class MovieKidService {
 
     private final MovieRepository movieRepository;
+    private final WatchedMoviesRepository watchedMoviesRepository;
 
     public List<Movie> getMoviesForKids() {
         return movieRepository.findAll().stream()
@@ -86,6 +86,17 @@ public class MovieKidService {
 
     public List<MovieWithAvgGradeDto> getTopTenMoviesWithAvgGradeForKids() {
         return movieRepository.findTop10MoviesByAvgGrade().stream()
+                .filter(movie -> movie.getAgeRestriction() == 0)
+                .toList();
+    }
+
+    public List<MovieWithAvgGradeDto> getMoviesPropositionForKids(String userId) {
+        var movies = watchedMoviesRepository.findMoviesByUserId(userId);
+        List<String> categories = movies.stream()
+                .map(Movie::getCategory)
+                .distinct()
+                .toList();
+        return movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, movies).stream()
                 .filter(movie -> movie.getAgeRestriction() == 0)
                 .toList();
     }

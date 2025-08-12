@@ -9,6 +9,8 @@ import com.tcode.moviebase.Services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -192,6 +194,21 @@ public class MovieKidController {
         } else {
             var avgGrade = movieGradeService.getAvgGrade(id);
             return ResponseEntity.status(201).body(avgGrade);
+        }
+    }
+
+    @Operation(summary = "Get movie propositions for kids", description = "Retrieves movie propositions based on the kids's watched movies.")
+    @GetMapping("/propositions")
+    public ResponseEntity<?> getMoviePropositionsForKids(@AuthenticationPrincipal Jwt jwt){
+        String userId = jwt.getClaimAsString("sub");
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("User ID is required.");
+        }
+        var movies = movieKidService.getMoviesPropositionForKids(userId);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
         }
     }
 

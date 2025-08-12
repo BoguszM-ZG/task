@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -204,6 +206,22 @@ public class MovieJuniorController {
         } else {
             var avgGrade = movieGradeService.getAvgGrade(id);
             return ResponseEntity.status(201).body(avgGrade);
+        }
+    }
+
+    @Operation(summary = "Get movie propositions for juniors", description = "Retrieves movie propositions based on the junior's watched movies.")
+    @GetMapping("/propositions")
+    @PreAuthorize("hasRole('client_junior') or hasRole('client_admin') or hasRole('client_user')")
+    public ResponseEntity<?> getMoviePropositionsForJuniors(@AuthenticationPrincipal Jwt jwt){
+        String userId = jwt.getClaimAsString("sub");
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("User ID is required.");
+        }
+        var movies = movieJuniorService.getMoviesPropositionForJuniors(userId);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
         }
     }
 }
