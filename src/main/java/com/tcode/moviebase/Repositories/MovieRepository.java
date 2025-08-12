@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface MovieRepository extends JpaRepository<Movie, Long> {
@@ -67,4 +68,10 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
 
     List<Movie> findByTagContaining(String tag);
+
+    @Query("SELECT m FROM Movie m WHERE m.world_premiere = :worldPremiere")
+    List<Movie> findMovieByWorld_premiere(LocalDate worldPremiere);
+
+    @Query("SELECT m FROM Movie m WHERE m.polish_premiere = :polish_premiere")
+    List<Movie> findMovieByPolish_premiere(LocalDate polish_premiere);
 }
