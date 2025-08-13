@@ -141,6 +141,30 @@ class MovieKidControllerIntegrationTest {
 
     @Test
     void testGetMoviesWithAvgGradeDescForKids() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+        var movie1 = new Movie();
+        movie1.setTitle("Test10");
+        movie1.setCategory("Test Category 1");
+        movie1.setDescription("This is a test movie description 1.");
+        movie1.setMovie_year(2023);
+        movie1.setPrizes("oscar");
+        movie1.setAgeRestriction(0);
+
+        var movie2 = new Movie();
+        movie2.setTitle("Test12");
+        movie2.setCategory("Test Category 2");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
+
+        var savedMovie1 = restTemplate.postForObject("http://localhost:" + port + "/movies", movie1, Movie.class);
+        var savedMovie2 = restTemplate.postForObject("http://localhost:" + port + "/movies", movie2, Movie.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie1.getId() + "/grade?grade=10", request, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=9", request, Double.class);
         ResponseEntity<MovieWithAvgGradeDto[]> response = restTemplate.getForEntity(baseUrl + "/avgGradeDesc", MovieWithAvgGradeDto[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         for (MovieWithAvgGradeDto m : response.getBody()) {
@@ -150,6 +174,30 @@ class MovieKidControllerIntegrationTest {
 
     @Test
     void testGetMoviesWithAvgGradeAscForKids() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+        var movie1 = new Movie();
+        movie1.setTitle("Test10");
+        movie1.setCategory("Test Category 1");
+        movie1.setDescription("This is a test movie description 1.");
+        movie1.setMovie_year(2023);
+        movie1.setPrizes("oscar");
+        movie1.setAgeRestriction(0);
+
+        var movie2 = new Movie();
+        movie2.setTitle("Test12");
+        movie2.setCategory("Test Category 2");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
+
+        var savedMovie1 = restTemplate.postForObject("http://localhost:" + port + "/movies", movie1, Movie.class);
+        var savedMovie2 = restTemplate.postForObject("http://localhost:" + port + "/movies", movie2, Movie.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie1.getId() + "/grade?grade=10", request, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=9", request, Double.class);
         ResponseEntity<MovieWithAvgGradeDto[]> response = restTemplate.getForEntity(baseUrl + "/avgGradeAsc", MovieWithAvgGradeDto[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         for (MovieWithAvgGradeDto m : response.getBody()) {
@@ -159,6 +207,30 @@ class MovieKidControllerIntegrationTest {
 
     @Test
     void testGetTop10MoviesByAvgGradeForKids() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+        var movie1 = new Movie();
+        movie1.setTitle("Test10");
+        movie1.setCategory("Test Category 1");
+        movie1.setDescription("This is a test movie description 1.");
+        movie1.setMovie_year(2023);
+        movie1.setPrizes("oscar");
+        movie1.setAgeRestriction(0);
+
+        var movie2 = new Movie();
+        movie2.setTitle("Test12");
+        movie2.setCategory("Test Category 2");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
+
+        var savedMovie1 = restTemplate.postForObject("http://localhost:" + port + "/movies", movie1, Movie.class);
+        var savedMovie2 = restTemplate.postForObject("http://localhost:" + port + "/movies", movie2, Movie.class);
+
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie1.getId() + "/grade?grade=10", request, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getId() + "/grade?grade=9", request, Double.class);
         ResponseEntity<MovieWithAvgGradeDto[]> response = restTemplate.getForEntity(baseUrl + "/topTen", MovieWithAvgGradeDto[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         for (MovieWithAvgGradeDto m : response.getBody()) {
@@ -168,12 +240,15 @@ class MovieKidControllerIntegrationTest {
 
     @Test
     void testAddKidsMovieGradeInvalidGrade() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
         ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl, Movie[].class);
         var movie = response.getBody()[0];
 
         try {
-            restTemplate.postForEntity(baseUrl + "/" + movie.getId() + "/grade?grade=11", null, Double.class);
-            fail("Grade must be between 1 and 10.");
+            restTemplate.postForEntity(baseUrl + "/" + movie.getId() + "/grade?grade=11", request, Double.class);
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
         }
@@ -181,21 +256,28 @@ class MovieKidControllerIntegrationTest {
 
     @Test
     void testAddKidsMovieGradeSuccess() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
         ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl, Movie[].class);
         Movie movie = response.getBody()[0];
 
-        ResponseEntity<Double> gradeResponse = restTemplate.postForEntity(baseUrl + "/" + movie.getId() + "/grade?grade=8", null, Double.class);
+        ResponseEntity<Double> gradeResponse = restTemplate.postForEntity(baseUrl + "/" + movie.getId() + "/grade?grade=8", request, Double.class);
         assertNotNull(gradeResponse.getBody());
         assertTrue(gradeResponse.getBody() >= 1 && gradeResponse.getBody() <= 10);
     }
 
     @Test
     void testGetKidsMovieWithAvgGrade() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
         ResponseEntity<Movie[]> response = restTemplate.getForEntity(baseUrl, Movie[].class);
         Movie movie = response.getBody()[0];
 
 
-        restTemplate.postForEntity(baseUrl + "/" + movie.getId() + "/grade?grade=7", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + movie.getId() + "/grade?grade=7", request, Double.class);
 
         ResponseEntity<MovieWithAvgGradeDto> avgGradeResponse = restTemplate.getForEntity(baseUrl + "/" + movie.getId() + "/details", MovieWithAvgGradeDto.class);
         assertEquals(HttpStatus.OK, avgGradeResponse.getStatusCode());
@@ -243,6 +325,94 @@ class MovieKidControllerIntegrationTest {
         assertNotNull(response.getBody());
         assertTrue(response.getBody().size() > 0);
 
-
     }
+
+    @Test
+    void testAddKidsGradeToMovieNotForKids() {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        var movie = new Movie();
+        movie.setTitle("Test Movie");
+        movie.setCategory("Action");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+        movie.setAgeRestriction(18);
+        var savedMovie = restTemplate.postForObject("http://localhost:" + port + "/movies", movie, Movie.class);
+
+        try {
+            restTemplate.postForEntity(baseUrl + "/" + savedMovie.getId() + "/grade?grade=8", request, Double.class);
+            fail("Expected HttpClientErrorException");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
+            assertEquals("Movie is not for kids.", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    void testAddGradeToMovieNotFound() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.postForEntity(baseUrl + "/99999/grade?grade=8", request, Double.class);
+            fail("Expected HttpClientErrorException");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Movie not found.", e.getResponseBodyAsString());
+        }
+    }
+
+
+    @Test
+    void testAddInvalidGrade() {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        var movie = new Movie();
+        movie.setTitle("Test Movie");
+        movie.setCategory("Action");
+        movie.setDescription("This is a test movie description.");
+        movie.setMovie_year(2023);
+        movie.setPrizes("oscar");
+        movie.setAgeRestriction(0);
+        var savedMovie = restTemplate.postForObject("http://localhost:" + port + "/movies", movie, Movie.class);
+
+        try {
+            restTemplate.postForEntity(baseUrl + "/" + savedMovie.getId() + "/grade?grade=11", request, Double.class);
+            fail("Expected HttpClientErrorException");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Grade must be between 1 and 10.", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    void testGetMoviePropositionsForKidsWithNoWatchedMovies() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        ResponseEntity<List> response = restTemplate.exchange(
+                baseUrl + "/propositions",
+                HttpMethod.GET,
+                request,
+                List.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+
+
+
+
+
 }

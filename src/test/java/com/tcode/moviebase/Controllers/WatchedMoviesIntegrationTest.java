@@ -14,9 +14,11 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
@@ -48,7 +50,7 @@ public class WatchedMoviesIntegrationTest {
     }
 
     @Test
-    public void testAddAndGetToWatchMovie() {
+    void testAddAndGetToWatchMovie() {
         var movie = new Movie();
         movie.setTitle("test");
         movie.setMovie_year(2023);
@@ -165,6 +167,113 @@ public class WatchedMoviesIntegrationTest {
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
         assertEquals("test", getResponse.getBody()[0].getTitle());
     }
+
+    @Test
+    public void testAddWatchedMovieWithNonExistentMovie() {
+        Long nonExistentMovieId = 999L;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/add/" + nonExistentMovieId, request, String.class);
+        }catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+        }
+
+    }
+
+    @Test
+    public void testAddWatchedMovieForKidsWithNonExistentMovie() {
+        Long nonExistentMovieId = 999L;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/kids/add/" + nonExistentMovieId, request, String.class);
+        }catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+        }
+    }
+
+    @Test
+    public void testAddWatchedMovieForJuniorsWithNonExistentMovie() {
+        Long nonExistentMovieId = 999L;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/juniors/add/" + nonExistentMovieId, request, String.class);
+        }catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+        }
+    }
+
+
+
+    @Test
+    void testCountWatchedMovies() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Drama");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(0);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        restTemplate.postForEntity(baseUrl + "/add/" + movieId, request, MovieWithAvgGradeDto.class);
+
+        ResponseEntity<Integer> response = restTemplate.exchange(
+                baseUrl + "/count",
+                HttpMethod.GET,
+                request,
+                Integer.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() > 0);
+    }
+
+    @Test
+    void testCountWatchedMoviesInMonth() {
+        var movie = new Movie();
+        movie.setTitle("test");
+        movie.setMovie_year(2023);
+        movie.setCategory("Drama");
+        movie.setDescription("A test movie for integration testing.");
+        movie.setPrizes("Best Picture");
+        movie.setAgeRestriction(0);
+        movieRepository.save(movie);
+        Long movieId = movie.getId();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> request = new HttpEntity<>(null, headers);
+
+        restTemplate.postForEntity(baseUrl + "/add/" + movieId, request, MovieWithAvgGradeDto.class);
+
+        ResponseEntity<Integer> response = restTemplate.exchange(
+                baseUrl + "/count-in-month?year=2025&month=08",
+                HttpMethod.GET,
+                request,
+                Integer.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() > 0);
+    }
+
 
 
 }
