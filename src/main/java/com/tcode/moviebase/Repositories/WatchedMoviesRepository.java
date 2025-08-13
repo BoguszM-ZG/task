@@ -14,4 +14,7 @@ public interface WatchedMoviesRepository extends JpaRepository<WatchedMovie, Int
 
     @Query("SELECT wm.movie FROM WatchedMovie wm WHERE wm.userId = :userId")
     List<Movie> findMoviesByUserId(String userId);
+
+    @Query("SELECT COUNT(wm) FROM WatchedMovie wm WHERE wm.userId = :userId and FUNCTION('YEAR', wm.createdAt) = :year AND FUNCTION('MONTH', wm.createdAt) = :month")
+    Integer findWatchedMoviesByCreatedAt(String userId, int year, int month);
 }

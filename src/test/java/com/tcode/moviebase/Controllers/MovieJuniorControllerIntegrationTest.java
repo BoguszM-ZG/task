@@ -151,6 +151,15 @@ class MovieJuniorControllerIntegrationTest {
 
     @Test
     void testGetMoviesWithAvgGradeAscForJuniors() {
+        var movie2 = new Movie();
+        movie2.setTitle("Test2");
+        movie2.setCategory("Test");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
+        var savedMovie2 = restTemplate.postForEntity("http://localhost:" + port + "/movies", movie2, Movie.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getBody().getId() + "/grade?grade=7", null, Double.class);
         ResponseEntity<MovieWithAvgGradeDto[]> response = restTemplate.getForEntity(baseUrl + "/avgGradeAsc", MovieWithAvgGradeDto[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -161,6 +170,15 @@ class MovieJuniorControllerIntegrationTest {
 
     @Test
     void testGetTop10MoviesByAvgGradeForJuniors() {
+        var movie2 = new Movie();
+        movie2.setTitle("Test2");
+        movie2.setCategory("Test");
+        movie2.setDescription("This is a test movie description 2.");
+        movie2.setMovie_year(2023);
+        movie2.setPrizes("oscar");
+        movie2.setAgeRestriction(0);
+        var savedMovie2 = restTemplate.postForEntity("http://localhost:" + port + "/movies", movie2, Movie.class);
+        restTemplate.postForEntity(baseUrl + "/" + savedMovie2.getBody().getId() + "/grade?grade=7", null, Double.class);
         ResponseEntity<MovieWithAvgGradeDto[]> response = restTemplate.getForEntity(baseUrl + "/topTen", MovieWithAvgGradeDto[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());

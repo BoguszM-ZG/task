@@ -50,4 +50,13 @@ public class WatchedService {
     public void removeWatchedMovie(String userId, Long movieId) {
         watchedMoviesRepository.removeByUserIdAndMovieId(userId, movieId);
     }
+
+    public Integer countWatchedMovies(String userId) {
+        return watchedMoviesRepository.findMoviesByUserId(userId).size();
+    }
+
+    public Integer countWatchedMoviesInMonth(String userId, int year, int month) {
+        return watchedMoviesRepository.findWatchedMoviesByCreatedAt(userId, year, month);
+
+    }
 }

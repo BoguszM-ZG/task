@@ -160,27 +160,13 @@ public class MovieKidController {
         }
         Double avgGrade = movieGradeService.getAvgGrade(id);
 
-        var movieWithAvgGradeDto = new MovieWithAvgGradeDto(
-                movie.getTitle(),
-                movie.getMovie_year(),
-                movie.getCategory(),
-                movie.getDescription(),
-                movie.getPrizes(),
-                movie.getWorld_premiere(),
-                movie.getPolish_premiere(),
-                movie.getTag(),
-                movie.getAgeRestriction(),
-                avgGrade
-        );
+        var movieWithAvgGradeDto = new MovieWithAvgGradeDto(movie.getTitle(), movie.getMovie_year(), movie.getCategory(), movie.getDescription(), movie.getPrizes(), movie.getWorld_premiere(), movie.getPolish_premiere(), movie.getTag(), movie.getAgeRestriction(), avgGrade);
         return ResponseEntity.ok(movieWithAvgGradeDto);
     }
 
     @Operation(summary = "Add a grade to a kids movie", description = "Adds a grade to a kids movie (age restriction 0) by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
-    public ResponseEntity<?> addKidsMovieGrade(@PathVariable Long id, @RequestParam int grade) {
-        if (grade < 1 || grade > 10) {
-            return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
-        }
+    public ResponseEntity<?> addKidsMovieGrade(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestParam int grade) {
         var movie = movieService.getMovieById(id);
         if (movie == null) {
             return ResponseEntity.notFound().build();
@@ -188,7 +174,18 @@ public class MovieKidController {
         if (movie.getAgeRestriction() != 0) {
             return ResponseEntity.status(403).body("Movie is not for kids.");
         }
-        var movieGrade = movieGradeService.addGrade(id, grade);
+        var userId = jwt.getClaimAsString("sub");
+        if (movieGradeService.existsGrade(jwt.getClaimAsString("sub"), id)) {
+            movieGradeService.updateGrade(userId, id, grade);
+            var avgGrade = movieGradeService.getAvgGrade(id);
+            return ResponseEntity.ok(avgGrade);
+        }
+
+        if (grade < 1 || grade > 10) {
+            return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
+        }
+
+        var movieGrade = movieGradeService.addGrade(userId, id, grade);
         if (movieGrade == null) {
             return ResponseEntity.notFound().build();
         } else {
@@ -199,7 +196,7 @@ public class MovieKidController {
 
     @Operation(summary = "Get movie propositions for kids", description = "Retrieves movie propositions based on the kids's watched movies.")
     @GetMapping("/propositions")
-    public ResponseEntity<?> getMoviePropositionsForKids(@AuthenticationPrincipal Jwt jwt){
+    public ResponseEntity<?> getMoviePropositionsForKids(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getClaimAsString("sub");
         if (userId == null) {
             return ResponseEntity.badRequest().body("User ID is required.");

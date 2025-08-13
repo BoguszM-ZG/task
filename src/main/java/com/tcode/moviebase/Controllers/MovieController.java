@@ -100,14 +100,21 @@ public class MovieController {
     @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
     @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
-    public ResponseEntity<?> addMovieGrade(@PathVariable Long id, @RequestParam int grade) {
+    public ResponseEntity<?> addMovieGrade(@AuthenticationPrincipal Jwt jwt,@PathVariable Long id, @RequestParam int grade) {
+        var userId = jwt.getClaimAsString("sub");
+        if(movieGradeService.existsGrade(jwt.getClaimAsString("sub"), id)) {
+            movieGradeService.updateGrade(userId, id, grade);
+            var avgGrade = movieGradeService.getAvgGrade(id);
+            return ResponseEntity.ok(avgGrade);
+        }
         if (grade < 1 || grade > 10) {
             return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
         }
         if (!movieRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        var movieGrade = movieGradeService.addGrade(id, grade);
+
+        var movieGrade = movieGradeService.addGrade(userId, id, grade);
         if (movieGrade == null) {
             return ResponseEntity.notFound().build();
         } else {
@@ -275,6 +282,33 @@ public class MovieController {
         } else {
             return ResponseEntity.ok(movies);
         }
+    }
+
+    @Operation(summary = "Get average grade by user ID", description = "Retrieves the average grade given by a user across all movies they have rated.")
+    @GetMapping("/average-grade-by-user")
+    public ResponseEntity<?> getAvgGradeByUserId(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getClaimAsString("sub");
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("You must be logged in to get your average grade.");
+        }
+        Double avgGrade = movieGradeService.getAvgGradeByUserId(userId);
+        if (avgGrade == 0.0) {
+            return ResponseEntity.ok("You have not rated any movies yet.");
+        }
+        return ResponseEntity.ok(avgGrade);
+    }
+
+    @GetMapping("/avg-grade-by-user-y-m")
+    public ResponseEntity<?> getAvgGradeByUserIdInYearAndMonth(@AuthenticationPrincipal Jwt jwt, @RequestParam int year, @RequestParam int month) {
+        String userId = jwt.getClaimAsString("sub");
+        if (userId == null) {
+            return ResponseEntity.badRequest().body("You must be logged in to get your average grade.");
+        }
+        Double avgGrade = movieGradeService.getAvgGradeGivenYearAndMonth(userId, year, month);
+        if (avgGrade == 0.0) {
+            return ResponseEntity.ok("You have not rated any movies in this month and year.");
+        }
+        return ResponseEntity.ok(avgGrade);
     }
 
 

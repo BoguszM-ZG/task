@@ -162,4 +162,24 @@ public class WatchedMoviesController {
         return ResponseEntity.ok(movieDto);
 
     }
+
+    @Operation(summary = "Count watched movies", description = "Counts the number of movies in the user's watched movies list.")
+    @GetMapping("/count")
+    public ResponseEntity<?> countWatchedMovies(@AuthenticationPrincipal Jwt jwt) {
+        var userId = jwt.getClaimAsString("sub");
+        var count = watchedService.countWatchedMovies(userId);
+        return ResponseEntity.ok(count);
+    }
+
+
+    @Operation(summary = "Count watched movies in a specific month", description = "Counts the number of movies watched by the user in a specific month and year.")
+    @GetMapping("/count-in-month")
+    public ResponseEntity<?> countWatchedMoviesInMonth(@AuthenticationPrincipal Jwt jwt, @RequestParam int year, @RequestParam int month) {
+        var userId = jwt.getClaimAsString("sub");
+        var count = watchedService.countWatchedMoviesInMonth(userId, year, month);
+        if (count == null) {
+            return ResponseEntity.badRequest().body("Invalid year or month");
+        }
+        return ResponseEntity.ok(count);
+    }
 }
