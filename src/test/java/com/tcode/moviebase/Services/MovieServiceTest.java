@@ -4,6 +4,7 @@ import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 
 import com.tcode.moviebase.Repositories.MovieRepository;
+import com.tcode.moviebase.Repositories.WatchedMoviesRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +25,9 @@ class MovieServiceTest {
 
     @Mock
     private MovieRepository movieRepository;
+
+    @Mock
+    private WatchedMoviesRepository watchedMoviesRepository;
 
 
 
@@ -281,6 +285,75 @@ class MovieServiceTest {
         assertEquals(4.5, result.get(0).getAvgGrade());
         assertEquals(3.8, result.get(1).getAvgGrade());
         verify(movieRepository).findTop10MoviesByAvgGrade();
+    }
+
+    @Test
+    void testGetMoviesPropositionForUser() {
+        String userId = "user1";
+        var watched1 = new Movie();
+        watched1.setCategory("Action");
+        var watched2 = new Movie();
+        watched2.setCategory("Comedy");
+        var watchedMovies = Arrays.asList(watched1, watched2);
+
+        var categories = Arrays.asList("Action", "Comedy");
+        var prop1 = mock(MovieWithAvgGradeDto.class);
+        var prop2 = mock(MovieWithAvgGradeDto.class);
+
+        when(watchedMoviesRepository.findMoviesByUserId(userId)).thenReturn(watchedMovies);
+        when(movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies((categories), (watchedMovies)))
+                .thenReturn(Arrays.asList(prop1, prop2));
+
+        var result = movieService.getMoviesPropositionForUser(userId);
+
+        assertEquals(2, result.size());
+        verify(watchedMoviesRepository).findMoviesByUserId(userId);
+        verify(movieRepository).findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, watchedMovies);
+    }
+
+    @Test
+    void testGetMoviesPropositionForUserReturnsEmptyListWhenNoWatchedMovies() {
+        var userId = "user2";
+        when(watchedMoviesRepository.findMoviesByUserId(userId)).thenReturn(List.of());
+        when(movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(List.of(), List.of()))
+                .thenReturn(List.of());
+
+        var result = movieService.getMoviesPropositionForUser(userId);
+
+        assertTrue(result.isEmpty());
+        verify(watchedMoviesRepository).findMoviesByUserId(userId);
+        verify(movieRepository).findMoviesPropositionByCategoriesDontIncludeWatchedMovies(List.of(), List.of());
+    }
+
+    @Test
+    void testGetMoviesPropositionForUserReturnsEmptyListWhenNoPropositions() {
+        var userId = "user3";
+        var watched = new Movie();
+        watched.setCategory("Drama");
+        var watchedMovies = List.of(watched);
+        var categories = List.of("Drama");
+
+        when(watchedMoviesRepository.findMoviesByUserId(userId)).thenReturn(watchedMovies);
+        when(movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, watchedMovies))
+                .thenReturn(List.of());
+
+        var result = movieService.getMoviesPropositionForUser(userId);
+
+        assertTrue(result.isEmpty());
+        verify(watchedMoviesRepository).findMoviesByUserId(userId);
+        verify(movieRepository).findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, watchedMovies);
+    }
+
+    @Test
+    void testGetAllMoviesWithAvgGrade() {
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("Movie 1", 2023, "Action", "Description 1", "Prizes 1", LocalDate.of(2023, 5, 1), LocalDate.of(2023, 6, 1), "Tag 1", 0,4.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("Movie 2", 2022, "Drama", "Description 2", "Prizes 2", LocalDate.of(2022, 7, 1), LocalDate.of(2022, 8, 1), "Tag 2", 0,3.8);
+        when(movieRepository.findAllMoviesWithAvgGrade()).thenReturn(Arrays.asList(m1, m2));
+
+        List<MovieWithAvgGradeDto> result = movieService.getAllMoviesWithAvgGrade();
+
+        assertEquals(2, result.size());
+        verify(movieRepository).findAllMoviesWithAvgGrade();
     }
 
 

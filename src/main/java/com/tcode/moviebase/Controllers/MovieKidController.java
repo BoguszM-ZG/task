@@ -206,7 +206,8 @@ public class MovieKidController {
         }
         var movies = movieKidService.getMoviesPropositionForKids(userId);
         if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            var allMovies = movieKidService.getAllMoviesForKidsWithAvgGrade();
+            return ResponseEntity.ok(allMovies);
         } else {
             return ResponseEntity.ok(movies);
         }

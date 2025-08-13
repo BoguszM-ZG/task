@@ -2,8 +2,8 @@ package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
-import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
+import com.tcode.moviebase.Repositories.WatchedMoviesRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,7 +25,8 @@ class MovieKidServiceTest {
     private MovieRepository movieRepository;
 
     @Mock
-    private MovieGradeRepository movieGradeRepository;
+    private WatchedMoviesRepository watchedMoviesRepository;
+
 
     @InjectMocks
     private MovieKidService movieKidService;
@@ -192,5 +193,77 @@ class MovieKidServiceTest {
 
         assertEquals(1, result.size());
         assertEquals(0, result.getFirst().getAgeRestriction());
+    }
+
+
+
+    @Test
+    void testMoviesPropositionForKids() {
+        var userId = "user1";
+        var watched1 = new Movie();
+        watched1.setCategory("Animation");
+        var watched2 = new Movie();
+        watched2.setCategory("Family");
+        var watchedMovies = Arrays.asList(watched1, watched2);
+
+        var categories = Arrays.asList("Animation", "Family");
+        var prop1 = new MovieWithAvgGradeDto("A", 2023, "Animation", "desc", "prize", LocalDate.now(), LocalDate.now(), "tag", 0, 4.5);
+        var prop2 = new MovieWithAvgGradeDto("B", 2023, "Family", "desc", "prize", LocalDate.now(), LocalDate.now(), "tag", 12, 3.0);
+
+        when(watchedMoviesRepository.findMoviesByUserId(userId)).thenReturn(watchedMovies);
+        when(movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies((categories), (watchedMovies)))
+                .thenReturn(Arrays.asList(prop1, prop2));
+
+        var result = movieKidService.getMoviesPropositionForKids(userId);
+
+        assertEquals(1, result.size());
+        assertEquals(0, result.getFirst().getAgeRestriction());
+        verify(watchedMoviesRepository).findMoviesByUserId(userId);
+        verify(movieRepository).findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, watchedMovies);
+    }
+
+    @Test
+    void testGetMoviesPropositionForKidsReturnsEmptyListWhenNoWatchedMovies() {
+        var userId = "user2";
+        when(watchedMoviesRepository.findMoviesByUserId(userId)).thenReturn(List.of());
+        when(movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(List.of(), List.of()))
+                .thenReturn(List.of());
+
+        var result = movieKidService.getMoviesPropositionForKids(userId);
+
+        assertTrue(result.isEmpty());
+        verify(watchedMoviesRepository).findMoviesByUserId(userId);
+        verify(movieRepository).findMoviesPropositionByCategoriesDontIncludeWatchedMovies(List.of(), List.of());
+    }
+
+    @Test
+    void testGetMoviesPropositionForKidsReturnsEmptyListWhenNoPropositions() {
+        var userId = "user3";
+        var watched = new Movie(); watched.setCategory("Adventure");
+        var watchedMovies = List.of(watched);
+        var categories = List.of("Adventure");
+
+        when(watchedMoviesRepository.findMoviesByUserId(userId)).thenReturn(watchedMovies);
+        when(movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, watchedMovies))
+                .thenReturn(List.of());
+
+        var result = movieKidService.getMoviesPropositionForKids(userId);
+
+        assertTrue(result.isEmpty());
+        verify(watchedMoviesRepository).findMoviesByUserId(userId);
+        verify(movieRepository).findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, watchedMovies);
+    }
+
+    @Test
+    void testGetAllMoviesForKidsWithAvgGrade() {
+        MovieWithAvgGradeDto m1 = new MovieWithAvgGradeDto("A", 2023, "cat", "desc", "prize", LocalDate.now(), LocalDate.now(), "tag", 0, 4.5);
+        MovieWithAvgGradeDto m2 = new MovieWithAvgGradeDto("B", 2023, "cat", "desc", "prize", LocalDate.now(), LocalDate.now(), "tag", 12, 3.0);
+        when(movieRepository.findAllMoviesWithAvgGrade()).thenReturn(Arrays.asList(m1, m2));
+
+        List<MovieWithAvgGradeDto> result = movieKidService.getAllMoviesForKidsWithAvgGrade();
+
+        assertEquals(1, result.size());
+        assertEquals(0, result.getFirst().getAgeRestriction());
+        verify(movieRepository).findAllMoviesWithAvgGrade();
     }
 }

@@ -105,6 +105,11 @@ public class MovieService {
     }
 
 
+    public List<MovieWithAvgGradeDto> getAllMoviesWithAvgGrade() {
+        return movieRepository.findAllMoviesWithAvgGrade();
+    }
+
+
 
 
 }

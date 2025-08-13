@@ -266,11 +266,12 @@ public class MovieController {
     public ResponseEntity<?> getMoviePropositionsForUser(@AuthenticationPrincipal Jwt jwt){
         String userId = jwt.getClaimAsString("sub");
         if (userId == null) {
-            return ResponseEntity.badRequest().body("User ID is required.");
+            return ResponseEntity.badRequest().body("you must be logged in to get movie propositions.");
         }
         var movies = movieService.getMoviesPropositionForUser(userId);
         if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            var allMovies = movieService.getAllMoviesWithAvgGrade();
+            return ResponseEntity.ok(allMovies);
         } else {
             return ResponseEntity.ok(movies);
         }

@@ -219,9 +219,12 @@ public class MovieJuniorController {
         }
         var movies = movieJuniorService.getMoviesPropositionForJuniors(userId);
         if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            var allMovies = movieJuniorService.getAllMoviesWithAvgGradeForJuniors();
+            return ResponseEntity.ok(allMovies);
         } else {
             return ResponseEntity.ok(movies);
         }
     }
+
+
 }

@@ -99,4 +99,10 @@ public class MovieJuniorService {
                 .filter(movie -> movie.getAgeRestriction() <= 17)
                 .toList();
     }
+
+    public List<MovieWithAvgGradeDto> getAllMoviesWithAvgGradeForJuniors() {
+        return movieRepository.findAllMoviesWithAvgGrade().stream()
+                .filter(movie -> movie.getAgeRestriction() <= 17)
+                .toList();
+    }
 }

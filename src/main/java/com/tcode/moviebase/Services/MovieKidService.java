@@ -101,6 +101,12 @@ public class MovieKidService {
                 .toList();
     }
 
+    public List<MovieWithAvgGradeDto> getAllMoviesForKidsWithAvgGrade() {
+        return movieRepository.findAllMoviesWithAvgGrade().stream()
+                .filter(movie -> movie.getAgeRestriction() == 0)
+                .toList();
+    }
+
 
 
 
