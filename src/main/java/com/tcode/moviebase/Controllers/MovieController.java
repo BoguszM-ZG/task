@@ -298,6 +298,7 @@ public class MovieController {
         return ResponseEntity.ok(avgGrade);
     }
 
+    @Operation(summary = "Get average grade by user ID in a specific year and month", description = "Retrieves the average grade given by a user in a specific year and month.")
     @GetMapping("/avg-grade-by-user-y-m")
     public ResponseEntity<?> getAvgGradeByUserIdInYearAndMonth(@AuthenticationPrincipal Jwt jwt, @RequestParam int year, @RequestParam int month) {
         String userId = jwt.getClaimAsString("sub");
