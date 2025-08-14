@@ -29,9 +29,9 @@ public class Comment {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @JsonIgnore
+
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
@@ -41,7 +41,7 @@ public class Comment {
     @Column(name = "comment_text", nullable = false, length = 500)
     private String commentText;
 
-    @JsonIgnore
+
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)

@@ -1,6 +1,7 @@
 package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Entities.Movie;
+import com.tcode.moviebase.Entities.WatchedMovie;
 import com.tcode.moviebase.Repositories.MovieNotificationRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import com.tcode.moviebase.Repositories.ToWatchRepository;
@@ -67,6 +68,48 @@ public class WatchedServiceTest {
 
         assertEquals(5, watchedService.countWatchedMoviesInMonth(userId, year, month));
         verify(watchedMoviesRepository).findWatchedMoviesByCreatedAt(userId, year, month);
+    }
+
+    @Test
+    void testAddWatchedMovie() {
+        String userId = "user1";
+        Long movieId = 1L;
+        Movie movie = new Movie();
+
+        when(movieRepository.findById(movieId)).thenReturn(java.util.Optional.of(movie));
+        when(movieNotificationRepository.existsByUserIdAndMovieId(userId, movieId)).thenReturn(true);
+        when(toWatchRepository.existsByUserIdAndMovieId(userId, movieId)).thenReturn(true);
+        when(watchedMoviesRepository.save(org.mockito.ArgumentMatchers.any(WatchedMovie.class)))
+                .thenReturn(new WatchedMovie(userId, movie));
+
+        watchedService.addWatchedMovie(userId, movieId);
+
+        verify(movieRepository).findById(movieId);
+        verify(watchedMoviesRepository).save(org.mockito.ArgumentMatchers.any(WatchedMovie.class));
+        verify(movieNotificationRepository).deleteByUserIdAndMovieId(userId, movieId);
+        verify(toWatchRepository).removeByUserIdAndMovieId(userId, movieId);
+    }
+
+    @Test
+    void testGetWatchedMovies() {
+        String userId = "user1";
+        List<Movie> movies = List.of(new Movie(), new Movie());
+
+        when(watchedMoviesRepository.findMoviesByUserId(userId)).thenReturn(movies);
+
+        List<Movie> result = watchedService.getWatchedMovies(userId);
+
+        verify(watchedMoviesRepository).findMoviesByUserId(userId);
+        assertEquals(movies, result);
+    }
+
+    @Test
+    void testRemoveWatchedMovie() {
+        String userId = "user1";
+        Long movieId = 1L;
+
+        watchedService.removeWatchedMovie(userId, movieId);
+        verify(watchedMoviesRepository).removeByUserIdAndMovieId(userId, movieId);
     }
 
 

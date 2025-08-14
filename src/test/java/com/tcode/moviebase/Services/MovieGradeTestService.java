@@ -15,8 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -141,6 +140,49 @@ public class MovieGradeTestService {
         when(movieGradeRepository.findByUserIdInYearAndMonth(userId, year, month)).thenReturn(Arrays.asList(grade1, grade2));
         Double result = movieGradeService.getAvgGradeGivenYearAndMonth(userId, year, month);
         assertEquals(5.0, result);
+        verify(movieGradeRepository).findByUserIdInYearAndMonth(userId, year, month);
+    }
+
+    @Test
+    void testExistsGrade() {
+        String userId = "user1";
+        Long movieId = 1L;
+        when(movieGradeRepository.existsByUserIdAndMovieId(userId, movieId)).thenReturn(true);
+
+        boolean result = movieGradeService.existsGrade(userId, movieId);
+
+        assertTrue(result);
+        verify(movieGradeRepository).existsByUserIdAndMovieId(userId, movieId);
+    }
+
+    @Test
+    void testUpdateGrade() {
+        String userId = "user1";
+        Long movieId = 1L;
+        int grade = 5;
+        MovieGrade existingGrade = new MovieGrade();
+        existingGrade.setUserId(userId);
+        existingGrade.setMovie(new Movie());
+        existingGrade.setGrade(3);
+
+        when(movieGradeRepository.findByUserIdAndMovieId(userId, movieId)).thenReturn(existingGrade);
+
+        movieGradeService.updateGrade(userId, movieId, grade);
+
+        verify(movieGradeRepository).delete(existingGrade);
+        verify(movieGradeRepository).save(any(MovieGrade.class));
+    }
+
+    @Test
+    void testGetAvgGradeGivenYearAndMonthReturnsZeroWhenNoGrades() {
+        String userId = "user4";
+        int year = 2023;
+        int month = 10;
+        when(movieGradeRepository.findByUserIdInYearAndMonth(userId, year, month)).thenReturn(List.of());
+
+        Double result = movieGradeService.getAvgGradeGivenYearAndMonth(userId, year, month);
+
+        assertEquals(0.0, result);
         verify(movieGradeRepository).findByUserIdInYearAndMonth(userId, year, month);
     }
 }

@@ -1,6 +1,7 @@
 package com.tcode.moviebase.Controllers;
 
 
+import com.tcode.moviebase.Dtos.CommentDto;
 import com.tcode.moviebase.Services.CommentService;
 import com.tcode.moviebase.Services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +36,11 @@ public class CommentController {
         }
         var comment = commentService.addComment(userId, movieId, commentText);
         if (comment != null) {
-            return ResponseEntity.ok(comment);
+            var commentDto = new CommentDto(
+                    userId,
+                    comment.getCommentText()
+            );
+            return ResponseEntity.ok(commentDto);
         } else {
             return ResponseEntity.badRequest().build();
         }
@@ -50,7 +57,13 @@ public class CommentController {
         if (comments.isEmpty()) {
             return ResponseEntity.ok("No comments found for this movie.");
         } else {
-            return ResponseEntity.ok(comments);
+            List<CommentDto> commentsDtos = comments.stream()
+                    .map(comment -> new CommentDto(
+                            comment.getUserId(),
+                            comment.getCommentText()
+                    )).toList();
+
+            return ResponseEntity.ok(commentsDtos);
         }
     }
 
@@ -86,7 +99,11 @@ public class CommentController {
         }
         var updatedComment = commentService.updateComment(commentId, userId, newCommentText);
         if (updatedComment != null) {
-            return ResponseEntity.ok(updatedComment);
+            var commentDto = new CommentDto(
+                    updatedComment.getUserId(),
+                    updatedComment.getCommentText()
+            );
+            return ResponseEntity.ok(commentDto);
         } else {
             return ResponseEntity.badRequest().build();
         }

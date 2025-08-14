@@ -1,6 +1,7 @@
 package com.tcode.moviebase.Controllers;
 
 
+import com.tcode.moviebase.Dtos.ReportDto;
 import com.tcode.moviebase.Services.CommentService;
 import com.tcode.moviebase.Services.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,7 +68,17 @@ public class ReportController {
         if (reports.isEmpty()) {
             return ResponseEntity.ok("No reports found.");
         } else {
-            return ResponseEntity.ok(reports);
+            var reportDtos = reports.stream()
+                .map(report -> new ReportDto(
+                        report.getId(),
+                        report.getUserId(),
+                        report.getComment().getId(),
+                        report.getComment().getCommentText(),
+                        report.getReason(),
+                        report.getCreatedAt().toString()
+                ))
+                .toList();
+            return ResponseEntity.ok(reportDtos);
         }
     }
 }
