@@ -37,11 +37,23 @@ public class MessageController {
 
     @GetMapping("/{threadId}")
     public ResponseEntity<?> getMessagesByThreadId(@PathVariable Long threadId) {
+        if (!forumThreadService.existsById(threadId)) {
+            return ResponseEntity.notFound().build();
+        }
         var messages = messageService.getMessagesByThreadId(threadId);
         if (messages.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(messages);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMessage(@PathVariable Long id){
+        if (!messageService.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        messageService.deleteMessage(id);
+        return ResponseEntity.ok().build();
     }
 
 

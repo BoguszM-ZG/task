@@ -29,4 +29,13 @@ public class MessageService {
     public List<Message> getMessagesByThreadId(Long threadId) {
         return messageRepository.findByThreadId(threadId);
     }
+
+    public boolean existsById(Long id) {
+        return messageRepository.existsById(id);
+    }
+
+    @Transactional
+    public void deleteMessage(Long id) {
+        messageRepository.deleteById(id);
+    }
 }

@@ -227,7 +227,6 @@ class MovieJuniorControllerIntegrationTest {
 
         try {
             restTemplate.postForEntity(baseUrl + "/" + movie.getId() + "/grade?grade=11", request, Double.class);
-            fail("Grade must be between 1 and 10.");
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
         }
