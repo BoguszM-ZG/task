@@ -1,5 +1,6 @@
 package com.tcode.moviebase.Controllers;
 
+import com.tcode.moviebase.Dtos.ReportDto;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Entities.ReportComment;
 import com.tcode.moviebase.Repositories.CommentRepository;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -224,4 +226,67 @@ public class ReportCommentIntegrationTest {
 
         assertEquals(HttpStatus.OK, rejectResponse.getStatusCode());
     }
+
+    @Test
+    void testApproveNonExistentReport() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        headers.set("Content-Type", "application/json");
+
+        try {
+            restTemplate.exchange(
+                    baseUrl + "/approve/9999", HttpMethod.POST, new HttpEntity<>(headers), String.class);
+        }catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Report does not exist.", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    void testRejectNonExistentReport() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        headers.set("Content-Type", "application/json");
+
+        try {
+            restTemplate.exchange(
+                    baseUrl + "/reject/9999", HttpMethod.POST, new HttpEntity<>(headers), String.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Report does not exist.", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    void testReportNonExistentComment() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        headers.set("Content-Type", "application/json");
+        String reason = "spam";
+        HttpEntity<String> reportRequest = new HttpEntity<>(reason, headers);
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/9999", reportRequest, String.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Comment does not exist", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    void testGetAllReportsWithoutReports() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> addRequest = new HttpEntity<>(null, headers);
+        try {
+            restTemplate.exchange(
+                    baseUrl, HttpMethod.GET, addRequest, String.class);
+        }catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.OK, e.getStatusCode());
+            assertEquals("No reports found.", e.getResponseBodyAsString());
+        }
+    }
+
+
 }
