@@ -8,4 +8,6 @@ public interface SurveyOptionRepository extends JpaRepository<SurveyOption, Long
     boolean existsByIdAndQuestion_Id(long id, long questionId);
 
     boolean existsByQuestion_IdAndContent(Long id, String content);
+
+    Object findByQuestionId(Long questionId);
 }

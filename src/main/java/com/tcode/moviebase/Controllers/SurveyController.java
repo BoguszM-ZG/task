@@ -8,6 +8,7 @@ import com.tcode.moviebase.Entities.SurveyAnswer;
 import com.tcode.moviebase.Entities.SurveyOption;
 import com.tcode.moviebase.Entities.SurveyQuestion;
 import com.tcode.moviebase.Services.SurveyService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +22,7 @@ public class SurveyController {
 
     public final SurveyService surveyService;
 
+    @Operation(summary = "get survey by id", description = "Returns a survey by its ID. If the survey does not exist, returns a 404 Not Found response.")
     @GetMapping("/{id}")
     public ResponseEntity<Survey> getSurveyById(@PathVariable Long id) {
         Survey survey = surveyService.getSurveyById(id);
@@ -30,12 +32,14 @@ public class SurveyController {
         return ResponseEntity.ok(survey);
     }
 
+    @Operation(summary = "create survey", description = "Creates a new survey with the given title. Returns the created survey.")
     @PostMapping("/create")
     public ResponseEntity<Survey> createSurvey(@RequestBody String surveyTitle) {
         Survey survey = surveyService.createSurvey(surveyTitle);
         return ResponseEntity.ok(survey);
     }
 
+    @Operation(summary = "add question to survey", description = "Adds a question to the specified survey. If the survey does not exist, returns a 404 Not Found response.")
     @PostMapping("/{surveyId}/questions")
     public ResponseEntity<SurveyQuestion> addQuestionToSurvey(@PathVariable Long surveyId, @RequestBody String questionContent) {
         if (!surveyService.surveyExists(surveyId)) {
@@ -48,6 +52,7 @@ public class SurveyController {
         return ResponseEntity.ok(survey);
     }
 
+    @Operation(summary = "add option of answer to question", description = "Adds an option of answer to the specified question in a survey. If the survey or question does not exist, returns a 404 Not Found response.")
     @PostMapping("/{surveyId}/questions/{questionId}/options")
     public ResponseEntity<?> addOptionToQuestion(@PathVariable Long surveyId, @PathVariable Long questionId, @RequestBody String optionContent) {
         if (!surveyService.surveyExists(surveyId)) {
@@ -66,6 +71,7 @@ public class SurveyController {
         return ResponseEntity.ok(option);
     }
 
+    @Operation(summary = "submit question answer", description = "Submits an answer to a question in a survey. If the survey, question, or option does not exist, returns a 400 Bad Request response. If the user has already answered the question, returns a 400 Bad Request response.")
     @PostMapping("/{surveyId}/questions/{questionId}/options/{optionId}/submit")
     public ResponseEntity<?> submitSurveyAnswer(@AuthenticationPrincipal Jwt jwt, @PathVariable Long questionId, @PathVariable Long surveyId,
                                                            @PathVariable Long optionId) {
@@ -94,6 +100,7 @@ public class SurveyController {
     }
 
 
+    @Operation(summary = "get survey for user", description = "Returns a survey for a user by its ID. If the survey does not exist, returns a 404 Not Found response.")
     @GetMapping("/{surveyId}/for-user")
     public ResponseEntity<?> getSurveyForUser(@PathVariable Long surveyId) {
         var survey = surveyService.getSurveyById(surveyId);
