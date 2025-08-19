@@ -4,6 +4,7 @@ import com.tcode.moviebase.Entities.Message;
 import com.tcode.moviebase.Services.ForumMemberService;
 import com.tcode.moviebase.Services.ForumThreadService;
 import com.tcode.moviebase.Services.MessageService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +21,7 @@ public class MessageController {
     private final ForumMemberService forumMemberService;
 
 
+    @Operation(summary = "Send a message in a forum thread", description = "Allows a user to send a message in a specific forum thread. The user must be a member of the forum associated with the thread.")
     @PostMapping("/send/{threadId}")
     public ResponseEntity<?> addMessage(@AuthenticationPrincipal Jwt jwt, @PathVariable Long threadId, @RequestBody String content) {
         var thread = forumThreadService.findById(threadId);
@@ -35,6 +37,7 @@ public class MessageController {
         return ResponseEntity.ok(message);
     }
 
+    @Operation(summary = "Get all messages in a forum thread", description = "Retrieves all messages associated with a specific forum thread by its ID.")
     @GetMapping("/{threadId}")
     public ResponseEntity<?> getMessagesByThreadId(@PathVariable Long threadId) {
         if (!forumThreadService.existsById(threadId)) {
@@ -47,6 +50,7 @@ public class MessageController {
         return ResponseEntity.ok(messages);
     }
 
+    @Operation(summary = "Delete a message", description = "Deletes a specific message by its ID. The message must exist.")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMessage(@PathVariable Long id){
         if (!messageService.existsById(id)) {

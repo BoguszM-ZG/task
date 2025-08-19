@@ -3,6 +3,7 @@ package com.tcode.moviebase.Controllers;
 import com.tcode.moviebase.Entities.ForumThread;
 import com.tcode.moviebase.Services.ForumService;
 import com.tcode.moviebase.Services.ForumThreadService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ public class ForumThreadController {
     private final ForumThreadService forumThreadService;
     private final ForumService forumService;
 
+    @Operation(summary = "Create a new forum thread", description = "Creates a new thread in the specified forum. The forum must exist.")
     @PostMapping("/create/{forumId}")
     public ResponseEntity<?> createThread(@PathVariable Long forumId,@RequestBody ForumThread forumThread) {
         if (forumService.getForumById(forumId) == null) {
@@ -23,6 +25,7 @@ public class ForumThreadController {
         return ResponseEntity.ok(createdThread);
     }
 
+    @Operation(summary = "Get all forum threads", description = "Retrieves a list of all forum threads.")
     @GetMapping("/all")
     public ResponseEntity<?> getAllForumThreads() {
         var threads = forumThreadService.getAllForumThreads();
@@ -32,6 +35,7 @@ public class ForumThreadController {
         return ResponseEntity.ok(threads);
     }
 
+    @Operation(summary = "Get a forum thread by ID", description = "Retrieves a specific forum thread by its ID.")
     @GetMapping("/forum/{forumId}")
     public ResponseEntity<?> getAllForumThreadsByForumId(@PathVariable Long forumId)
     {
@@ -42,6 +46,7 @@ public class ForumThreadController {
         return ResponseEntity.ok(threads);
     }
 
+    @Operation(summary = "delete a forum thread", description = "Deletes a specific forum thread by its ID. The thread must exist.")
     @DeleteMapping("/delete/{forumThreadId}")
     public ResponseEntity<?> deleteForumThread(@PathVariable Long forumThreadId) {
         if (forumThreadService.existsById(forumThreadId)) {

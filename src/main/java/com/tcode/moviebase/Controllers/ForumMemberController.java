@@ -3,6 +3,7 @@ package com.tcode.moviebase.Controllers;
 
 import com.tcode.moviebase.Services.ForumMemberService;
 import com.tcode.moviebase.Services.ForumService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +18,7 @@ public class ForumMemberController {
     private final ForumMemberService forumMemberService;
     private final ForumService forumService;
 
+    @Operation(summary = "Join a forum", description = "Allows a user to join a forum by its ID. The user must not already be a member of the forum.")
     @PostMapping("/join/{forumId}")
     public ResponseEntity<?> joinForum(@AuthenticationPrincipal Jwt jwt,@PathVariable Long forumId) {
         var userId = jwt.getClaimAsString("sub");
@@ -30,6 +32,7 @@ public class ForumMemberController {
         return ResponseEntity.ok("User added to forum successfully");
     }
 
+    @Operation(summary = "Leave a forum", description = "Allows a user to leave a forum they are currently a member of.")
     @DeleteMapping("/leave/{forumId}")
     public ResponseEntity<?> leaveForum(@AuthenticationPrincipal Jwt jwt, @PathVariable Long forumId) {
         var userId = jwt.getClaimAsString("sub");

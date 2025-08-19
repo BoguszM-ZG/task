@@ -1,6 +1,6 @@
 package com.tcode.moviebase.Controllers;
 
-import com.tcode.moviebase.Dtos.ReportDto;
+
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Entities.ReportComment;
 import com.tcode.moviebase.Repositories.CommentRepository;
