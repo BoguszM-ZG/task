@@ -1,5 +1,8 @@
 package com.tcode.moviebase.Controllers;
 
+import com.tcode.moviebase.Dtos.SurveyDto;
+import com.tcode.moviebase.Dtos.SurveyOptionDto;
+import com.tcode.moviebase.Dtos.SurveyQuestionDto;
 import com.tcode.moviebase.Entities.Survey;
 import com.tcode.moviebase.Entities.SurveyAnswer;
 import com.tcode.moviebase.Entities.SurveyOption;
@@ -88,6 +91,32 @@ public class SurveyController {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(answer);
+    }
+
+
+    @GetMapping("/{surveyId}/for-user")
+    public ResponseEntity<?> getSurveyForUser(@PathVariable Long surveyId) {
+        var survey = surveyService.getSurveyById(surveyId);
+        if (survey == null) {
+            return ResponseEntity.notFound().build();
+        }
+        var surveyQuestions = survey.getSurveyQuestions();
+
+
+
+        var surveyDto = new SurveyDto(
+            survey.getTitle(),
+            surveyQuestions.stream()
+                .map(q -> new SurveyQuestionDto(
+                    q.getContent(),
+                    q.getSurveyOptions().stream()
+                        .map(o -> new SurveyOptionDto(o.getContent()))
+                        .toList()
+                ))
+                .toList()
+        );
+
+        return ResponseEntity.ok(surveyDto);
     }
 
 
