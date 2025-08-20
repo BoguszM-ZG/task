@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class SurveyOptionDto {
-    private String content;
+    private String option;
 
 }

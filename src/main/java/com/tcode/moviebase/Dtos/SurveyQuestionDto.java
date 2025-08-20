@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class SurveyQuestionDto {
-    private String content;
+    private String question;
     private List<SurveyOptionDto> options;
 
 }

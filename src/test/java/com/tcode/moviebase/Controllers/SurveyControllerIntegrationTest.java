@@ -1,7 +1,6 @@
 package com.tcode.moviebase.Controllers;
 
 import com.tcode.moviebase.Entities.Survey;
-import com.tcode.moviebase.Entities.SurveyOption;
 import com.tcode.moviebase.Repositories.SurveyOptionRepository;
 import com.tcode.moviebase.Security.TestSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
@@ -205,6 +204,171 @@ public class SurveyControllerIntegrationTest {
             restTemplate.postForEntity(baseUrl + "/" + nonExistentSurveyId + "/questions/" + nonExistentQuestionId + "/options", optionRequest, Object.class);
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    @Test
+    public void testSubmitSurveyAnswer() {
+        String title = "test survey";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> surveyRequest = new HttpEntity<>(title, headers);
+        ResponseEntity<Survey> surveyResponse = restTemplate.postForEntity(baseUrl + "/create", surveyRequest, Survey.class);
+        Long surveyId = surveyResponse.getBody().getId();
+
+        String questionContent = "test";
+        HttpEntity<String> questionRequest = new HttpEntity<>(questionContent, headers);
+        ResponseEntity<Survey> questionResponse = restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions", questionRequest, Survey.class);
+        Long questionId = questionResponse.getBody().getId();
+
+        String optionContent = "test";
+        HttpEntity<String> optionRequest = new HttpEntity<>(optionContent, headers);
+        restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions/" + questionId + "/options", optionRequest, Object.class);
+
+        Long optionId = surveyOptionRepository.findAll().get(1).getId();
+
+
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> answerRequest = new HttpEntity<>(headers);
+        ResponseEntity<?> answerResponse = restTemplate.postForEntity(
+                baseUrl + "/" + surveyId + "/questions/" + questionId + "/options/" + optionId + "/submit",
+                answerRequest, Object.class);
+
+        assertEquals(HttpStatus.OK, answerResponse.getStatusCode());
+    }
+
+    @Test
+    public void testSubmitSurveyAnswerAlreadyAnswered() {
+        String title = "test survey";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> surveyRequest = new HttpEntity<>(title, headers);
+        ResponseEntity<Survey> surveyResponse = restTemplate.postForEntity(baseUrl + "/create", surveyRequest, Survey.class);
+        Long surveyId = surveyResponse.getBody().getId();
+
+        String questionContent = "test";
+        HttpEntity<String> questionRequest = new HttpEntity<>(questionContent, headers);
+        ResponseEntity<Survey> questionResponse = restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions", questionRequest, Survey.class);
+        Long questionId = questionResponse.getBody().getId();
+
+        String optionContent = "test";
+        HttpEntity<String> optionRequest = new HttpEntity<>(optionContent, headers);
+        restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions/" + questionId + "/options", optionRequest, Object.class);
+        Long optionId = surveyOptionRepository.findAll().get(2).getId();
+
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> answerRequest = new HttpEntity<>(headers);
+        restTemplate.postForEntity(
+                baseUrl + "/" + surveyId + "/questions/" + questionId + "/options/" + optionId + "/submit",
+                answerRequest, Object.class);
+
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/" + surveyId + "/questions/" + questionId + "/options/" + optionId + "/submit",
+                    answerRequest, Object.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("You have already answered this question.", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    public void testGetSurveyForUser() {
+        String title = "test survey";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> surveyRequest = new HttpEntity<>(title, headers);
+        ResponseEntity<Survey> surveyResponse = restTemplate.postForEntity(baseUrl + "/create", surveyRequest, Survey.class);
+        Long surveyId = surveyResponse.getBody().getId();
+
+        ResponseEntity<Object> response = restTemplate.getForEntity(baseUrl + "/" + surveyId + "/for-user", Object.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testGetSurveyForUserNotFound() {
+        Long nonExistentSurveyId = 999L;
+        try {
+            restTemplate.getForEntity(baseUrl + "/" + nonExistentSurveyId + "/for-user", Object.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    @Test
+    public void testSubmitSurveyAnswerForNonExistentSurvey() {
+        Long nonExistentSurveyId = 999L;
+        Long questionId = 999L;
+        Long optionId = 999L;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> answerRequest = new HttpEntity<>(null, headers);
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/" + nonExistentSurveyId + "/questions/" + questionId + "/options/" + optionId + "/submit",
+                    answerRequest, Object.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Survey does not exist.", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    public void testSubmitSurveyAnswerForNonExistentQuestion() {
+        String title = "test survey";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> surveyRequest = new HttpEntity<>(title, headers);
+        ResponseEntity<Survey> surveyResponse = restTemplate.postForEntity(baseUrl + "/create", surveyRequest, Survey.class);
+        Long surveyId = surveyResponse.getBody().getId();
+
+        Long nonExistentQuestionId = 999L;
+        Long optionId = 999L;
+
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> answerRequest = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/" + surveyId + "/questions/" + nonExistentQuestionId + "/options/" + optionId + "/submit",
+                    answerRequest, Object.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Question does not exist.", e.getResponseBodyAsString());
+        }
+    }
+
+    @Test
+    public void testSubmitSurveyAnswerForNonExistentOption() {
+        String title = "test";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> surveyRequest = new HttpEntity<>(title, headers);
+        ResponseEntity<Survey> surveyResponse = restTemplate.postForEntity(baseUrl + "/create", surveyRequest, Survey.class);
+        Long surveyId = surveyResponse.getBody().getId();
+
+        String questionContent = "test?";
+        HttpEntity<String> questionRequest = new HttpEntity<>(questionContent, headers);
+        ResponseEntity<Survey> questionResponse = restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions", questionRequest, Survey.class);
+        Long questionId = questionResponse.getBody().getId();
+
+        Long nonExistentOptionId = 999L;
+
+        headers.set("Authorization", jwtToken);
+        HttpEntity<Void> answerRequest = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.postForEntity(
+                    baseUrl + "/" + surveyId + "/questions/" + questionId + "/options/" + nonExistentOptionId + "/submit",
+                    answerRequest, Object.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals("Option does not belong to the specified question.", e.getResponseBodyAsString());
         }
     }
 
