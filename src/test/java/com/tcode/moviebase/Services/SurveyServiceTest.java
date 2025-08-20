@@ -155,4 +155,55 @@ public class SurveyServiceTest {
         when(surveyOptionRepository.existsByQuestion_IdAndContent(2L, "option")).thenReturn(true);
         assertTrue(surveyService.optionExistsByContent(2L, "option"));
     }
+
+    @Test
+    void testGetAllSurveys() {
+        Survey survey1 = new Survey();
+        survey1.setId(1L);
+        survey1.setTitle("Survey 1");
+
+        Survey survey2 = new Survey();
+        survey2.setId(2L);
+        survey2.setTitle("Survey 2");
+
+        List<Survey> surveys = Arrays.asList(survey1, survey2);
+        when(surveyRepository.findAll()).thenReturn(surveys);
+
+        List<Survey> result = surveyService.getAllSurveys();
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(survey1));
+        assertTrue(result.contains(survey2));
+    }
+
+    @Test
+    void testGetAllSurveysEmpty() {
+    when(surveyRepository.findAll()).thenReturn(Collections.emptyList());
+    List<Survey> result = surveyService.getAllSurveys();
+    assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetSurveyTitle() {
+        Survey survey = new Survey();
+        survey.setId(1L);
+        survey.setTitle("Test Survey");
+        when(surveyRepository.findAll()).thenReturn(List.of(survey));
+
+        List<String> title = surveyService.getSurveyTitles();
+
+
+        assertEquals("Test Survey", title.getFirst());
+    }
+
+    @Test
+    void testGetMostChosenOptionByQuestionId() {
+        SurveyOption option = new SurveyOption();
+        option.setContent("Most Chosen Option");
+        when(surveyAnswerRepository.findMostChosenAnswerByQuestionId(1L)).thenReturn(option);
+
+        SurveyOption result = surveyService.getMostChosenOption(1L);
+
+        assertEquals("Most Chosen Option", result.getContent());
+    }
 }

@@ -9,5 +9,5 @@ public interface SurveyOptionRepository extends JpaRepository<SurveyOption, Long
 
     boolean existsByQuestion_IdAndContent(Long id, String content);
 
-    Object findByQuestionId(Long questionId);
+    SurveyOption findByContent(String content);
 }

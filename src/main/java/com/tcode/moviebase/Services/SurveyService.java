@@ -11,6 +11,8 @@ import com.tcode.moviebase.Repositories.SurveyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -99,5 +101,20 @@ public class SurveyService {
     }
     public boolean optionExistsByContent(Long questionId, String content) {
         return surveyOptionRepository.existsByQuestion_IdAndContent(questionId, content);
+    }
+
+
+    public List<Survey> getAllSurveys() {
+        return surveyRepository.findAll();
+    }
+
+    public List<String> getSurveyTitles() {
+        return surveyRepository.findAll().stream()
+                .map(Survey::getTitle)
+                .toList();
+    }
+
+    public SurveyOption getMostChosenOption(Long questionId) {
+        return surveyAnswerRepository.findMostChosenAnswerByQuestionId(questionId);
     }
 }

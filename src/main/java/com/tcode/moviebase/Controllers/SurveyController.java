@@ -3,6 +3,7 @@ package com.tcode.moviebase.Controllers;
 import com.tcode.moviebase.Dtos.SurveyDto;
 import com.tcode.moviebase.Dtos.SurveyOptionDto;
 import com.tcode.moviebase.Dtos.SurveyQuestionDto;
+import com.tcode.moviebase.Dtos.SurveyResultDto;
 import com.tcode.moviebase.Entities.Survey;
 import com.tcode.moviebase.Entities.SurveyAnswer;
 import com.tcode.moviebase.Entities.SurveyOption;
@@ -14,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Objects;
+
 
 @RequiredArgsConstructor
 @RestController
@@ -61,7 +65,7 @@ public class SurveyController {
         if (!surveyService.questionExists(questionId)) {
             return ResponseEntity.notFound().build();
         }
-        if(surveyService.optionExistsByContent(questionId, optionContent)) {
+        if (surveyService.optionExistsByContent(questionId, optionContent)) {
             return ResponseEntity.badRequest().body("Option with this content already exists for the question.");
         }
         SurveyOption option = surveyService.addOptionToQuestion(questionId, optionContent);
@@ -73,8 +77,7 @@ public class SurveyController {
 
     @Operation(summary = "submit question answer", description = "Submits an answer to a question in a survey. If the survey, question, or option does not exist, returns a 400 Bad Request response. If the user has already answered the question, returns a 400 Bad Request response.")
     @PostMapping("/{surveyId}/questions/{questionId}/options/{optionId}/submit")
-    public ResponseEntity<?> submitSurveyAnswer(@AuthenticationPrincipal Jwt jwt, @PathVariable Long questionId, @PathVariable Long surveyId,
-                                                           @PathVariable Long optionId) {
+    public ResponseEntity<?> submitSurveyAnswer(@AuthenticationPrincipal Jwt jwt, @PathVariable Long questionId, @PathVariable Long surveyId, @PathVariable Long optionId) {
         if (!surveyService.surveyExists(surveyId)) {
             return ResponseEntity.badRequest().body("Survey does not exist.");
         }
@@ -86,8 +89,7 @@ public class SurveyController {
             return ResponseEntity.badRequest().body("Option does not belong to the specified question.");
         }
         var userId = jwt.getClaimAsString("sub");
-        if (surveyService.hasUserAnsweredQuestion(questionId, userId))
-        {
+        if (surveyService.hasUserAnsweredQuestion(questionId, userId)) {
             return ResponseEntity.badRequest().body("You have already answered this question.");
         }
 
@@ -110,23 +112,51 @@ public class SurveyController {
         var surveyQuestions = survey.getSurveyQuestions();
 
 
-
-        var surveyDto = new SurveyDto(
-            survey.getTitle(),
-            surveyQuestions.stream()
-                .map(q -> new SurveyQuestionDto(
-                    q.getContent(),
-                    q.getSurveyOptions().stream()
-                        .map(o -> new SurveyOptionDto(o.getContent()))
-                        .toList()
-                ))
-                .toList()
-        );
+        var surveyDto = new SurveyDto(survey.getTitle(), surveyQuestions.stream().map(q -> new SurveyQuestionDto(q.getContent(), q.getSurveyOptions().stream().map(o -> new SurveyOptionDto(o.getContent())).toList())).toList());
 
         return ResponseEntity.ok(surveyDto);
     }
 
+    @Operation(summary = "get all surveys", description = "Returns a list of all surveys.")
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllSurveys() {
+        var surveys = surveyService.getAllSurveys();
+        if (surveys.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        var surveyDtos = surveys.stream().map(survey -> new SurveyDto(survey.getTitle(), survey.getSurveyQuestions().stream().map(q -> new SurveyQuestionDto(q.getContent(), q.getSurveyOptions().stream().map(o -> new SurveyOptionDto(o.getContent())).toList())).toList())).toList();
+        return ResponseEntity.ok(surveyDtos);
+    }
 
+    @Operation(summary = "get survey titles", description = "Returns a list of all survey titles.")
+    @GetMapping("/all/titles")
+    public ResponseEntity<?> getSurveyTitles() {
+        var titles = surveyService.getSurveyTitles();
+        if (titles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(titles);
+    }
+
+
+    @Operation(summary = "get most chosen option for survey", description = "Returns the most chosen options for each question in a survey. If the survey does not exist, returns a 404 Not Found response.")
+    @GetMapping("/{surveyId}/results")
+    public ResponseEntity<?> getMostChosenOptionForSurvey(@PathVariable Long surveyId) {
+        var survey = surveyService.getSurveyById(surveyId);
+        if (survey == null) {
+            return ResponseEntity.notFound().build();
+        }
+        var surveyResultDto = survey.getSurveyQuestions().stream().map(question -> {
+            var mostChosenOption = surveyService.getMostChosenOption(question.getId());
+            if (mostChosenOption == null) {
+                return null;
+            }
+            return new SurveyResultDto(question.getContent(), mostChosenOption.getContent());
+        }).filter(Objects::nonNull).toList();
+
+
+        return ResponseEntity.ok(surveyResultDto);
+    }
 
 
 }

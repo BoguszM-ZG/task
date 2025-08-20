@@ -15,8 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
@@ -225,7 +224,7 @@ public class SurveyControllerIntegrationTest {
         HttpEntity<String> optionRequest = new HttpEntity<>(optionContent, headers);
         restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions/" + questionId + "/options", optionRequest, Object.class);
 
-        Long optionId = surveyOptionRepository.findAll().get(1).getId();
+        Long optionId = surveyOptionRepository.findAll().get(2).getId();
 
 
         headers.set("Authorization", jwtToken);
@@ -254,7 +253,7 @@ public class SurveyControllerIntegrationTest {
         String optionContent = "test";
         HttpEntity<String> optionRequest = new HttpEntity<>(optionContent, headers);
         restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions/" + questionId + "/options", optionRequest, Object.class);
-        Long optionId = surveyOptionRepository.findAll().get(2).getId();
+        Long optionId = surveyOptionRepository.findAll().get(3).getId();
 
         headers.set("Authorization", jwtToken);
         HttpEntity<Void> answerRequest = new HttpEntity<>(headers);
@@ -372,7 +371,63 @@ public class SurveyControllerIntegrationTest {
         }
     }
 
+    @Test
+    public void testGetAllSurveys() {
+        var survey1 = new Survey();
+        survey1.setTitle("Survey 1");
+        restTemplate.postForEntity(baseUrl + "/create", survey1, Survey.class);
+        ResponseEntity<Survey[]> response = restTemplate.getForEntity(baseUrl + "/all", Survey[].class);
 
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length > 0);
+
+    }
+
+    @Test
+    public void testGetSurveyTitle(){
+        var survey1 = new Survey();
+        survey1.setTitle("Survey 1");
+        restTemplate.postForEntity(baseUrl + "/create", survey1, Survey.class);
+        ResponseEntity<String[]> response = restTemplate.getForEntity(baseUrl + "/all/titles", String[].class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length > 0);
+    }
+
+    @Test
+    public void testGetMostChosenOptionForSurvey() {
+        String title = "test survey";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> surveyRequest = new HttpEntity<>(title, headers);
+        ResponseEntity<Survey> surveyResponse = restTemplate.postForEntity(baseUrl + "/create", surveyRequest, Survey.class);
+        Long surveyId = surveyResponse.getBody().getId();
+
+        String questionContent = "What is your favorite movie?";
+        HttpEntity<String> questionRequest = new HttpEntity<>(questionContent, headers);
+        ResponseEntity<Survey> questionResponse = restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions", questionRequest, Survey.class);
+        Long questionId = questionResponse.getBody().getId();
+
+
+        String optionContent2 = "test";
+        HttpEntity<String> optionRequest2 = new HttpEntity<>(optionContent2, headers);
+        restTemplate.postForEntity(baseUrl + "/" + surveyId + "/questions/" + questionId + "/options", optionRequest2, Object.class);
+
+        Long optionId1 = surveyOptionRepository.findAll().get(1).getId();
+
+        headers.set("Authorization", jwtToken);
+        restTemplate.postForEntity(
+                baseUrl + "/" + surveyId + "/questions/" + questionId + "/options/" + optionId1 + "/submit",
+                new HttpEntity<>(headers), Object.class);
+
+
+        ResponseEntity<?> response = restTemplate.getForEntity(baseUrl + "/" + surveyId + "/results", Object.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
 
 
 }
