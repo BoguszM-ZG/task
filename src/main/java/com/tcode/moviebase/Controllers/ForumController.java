@@ -5,6 +5,7 @@ import com.tcode.moviebase.Services.ForumService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class ForumController {
 
     @Operation(summary = "Delete forum", description = "delete a forum by ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> deleteForum(@PathVariable Long id) {
         if (forumService.getForumById(id) == null) {
             return ResponseEntity.badRequest().body("forum not found");

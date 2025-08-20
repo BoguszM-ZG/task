@@ -7,6 +7,7 @@ import com.tcode.moviebase.Services.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +53,7 @@ public class MessageController {
 
     @Operation(summary = "Delete a message", description = "Deletes a specific message by its ID. The message must exist.")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> deleteMessage(@PathVariable Long id){
         if (!messageService.existsById(id)) {
             return ResponseEntity.notFound().build();

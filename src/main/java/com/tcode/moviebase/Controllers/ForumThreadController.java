@@ -6,6 +6,7 @@ import com.tcode.moviebase.Services.ForumThreadService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -48,6 +49,7 @@ public class ForumThreadController {
 
     @Operation(summary = "delete a forum thread", description = "Deletes a specific forum thread by its ID. The thread must exist.")
     @DeleteMapping("/delete/{forumThreadId}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> deleteForumThread(@PathVariable Long forumThreadId) {
         if (forumThreadService.existsById(forumThreadId)) {
             forumThreadService.deleteForumThread(forumThreadId);

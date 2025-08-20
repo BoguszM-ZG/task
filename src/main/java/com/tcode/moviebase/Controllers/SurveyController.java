@@ -12,6 +12,7 @@ import com.tcode.moviebase.Services.SurveyService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +39,7 @@ public class SurveyController {
 
     @Operation(summary = "create survey", description = "Creates a new survey with the given title. Returns the created survey.")
     @PostMapping("/create")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<Survey> createSurvey(@RequestBody String surveyTitle) {
         Survey survey = surveyService.createSurvey(surveyTitle);
         return ResponseEntity.ok(survey);
@@ -45,6 +47,7 @@ public class SurveyController {
 
     @Operation(summary = "add question to survey", description = "Adds a question to the specified survey. If the survey does not exist, returns a 404 Not Found response.")
     @PostMapping("/{surveyId}/questions")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<SurveyQuestion> addQuestionToSurvey(@PathVariable Long surveyId, @RequestBody String questionContent) {
         if (!surveyService.surveyExists(surveyId)) {
             return ResponseEntity.notFound().build();
@@ -58,6 +61,7 @@ public class SurveyController {
 
     @Operation(summary = "add option of answer to question", description = "Adds an option of answer to the specified question in a survey. If the survey or question does not exist, returns a 404 Not Found response.")
     @PostMapping("/{surveyId}/questions/{questionId}/options")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> addOptionToQuestion(@PathVariable Long surveyId, @PathVariable Long questionId, @RequestBody String optionContent) {
         if (!surveyService.surveyExists(surveyId)) {
             return ResponseEntity.notFound().build();
