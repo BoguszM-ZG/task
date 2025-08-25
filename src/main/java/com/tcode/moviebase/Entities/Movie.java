@@ -8,7 +8,9 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Getter
@@ -51,5 +53,23 @@ public class Movie {
 
     @Column(name = "polish_premiere")
     private LocalDate polish_premiere;
+
+    @ManyToMany(mappedBy = "movies")
+    Set<Actor> actors = new HashSet<>();
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MovieCover> covers = new ArrayList<>();
+
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MovieTrailer> trailers = new ArrayList<>();
+
+    @Column(name = "age_restriction")
+    private Integer ageRestriction;
+
+    @ManyToMany(mappedBy = "movies")
+    private Set<Director> directors = new HashSet<>();
+
+
 
 }

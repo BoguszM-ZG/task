@@ -4,12 +4,16 @@ import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 
 
-import com.tcode.moviebase.Repositories.MovieRepository;
 import com.tcode.moviebase.Services.MovieGradeService;
 import com.tcode.moviebase.Services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,25 +24,15 @@ import java.util.List;
 public class MovieController {
     private final MovieService movieService;
     private final MovieGradeService movieGradeService;
-    private final MovieRepository movieRepository;
 
-    @Operation(summary = "Get all movies", description = "Retrieves a list of all movies in the database.")
-    @GetMapping
-    public ResponseEntity<List<Movie>> getAllMovies() {
-        var movies = movieService.getAllMovies();
-        if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(movies);
-    }
+
+
+
 
     @Operation(summary = "Add a new movie", description = "Adds a new movie to the database.")
     @PostMapping
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> addMovie(@RequestBody Movie movie) {
-        if (movie.getTitle() == null || movie.getMovie_year() == null) {
-            return ResponseEntity.badRequest().body("Title and year are required fields.");
-        }
-
         var movieAdded = movieService.addMovie(movie);
         return ResponseEntity.status(201).body(movieAdded);
     }
@@ -46,117 +40,195 @@ public class MovieController {
 
     @Operation(summary = "Delete a movie", description = "Deletes a movie by its ID from the database.")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<Void> deleteMovie(@PathVariable Long id) {
-        var exists = movieService.getMovieById(id);
-        if (exists == null) {
-            return ResponseEntity.notFound().build();
-        }
         movieService.deleteMovie(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get a movie by ID", description = "Retrieves a movie by its ID from the database.")
-    @GetMapping("/{id}")
-    public ResponseEntity<Movie> getMovie(@PathVariable Long id) {
-        var movie = movieService.getMovieById(id);
-        if (movie == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(movie);
-    }
+    @Operation(summary = "Get movie propositions for user", description = "Retrieves movie propositions based on the user's watched movies.")
+    @GetMapping("/propositions")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
+    public ResponseEntity<?> getMoviePropositionsForUser(@AuthenticationPrincipal Jwt jwt,
 
-
-    @Operation(summary = "Get movies by category", description = "Retrieves a list of movies by their category.")
-    @GetMapping("/findByCategory/{category}")
-    public ResponseEntity<List<Movie>> getMoviesByCategory(@PathVariable String category) {
-        var movies = movieService.findByCategory(category);
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "20") int size){
+        String userId = jwt.getClaimAsString("sub");
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.getMoviesPropositionForUser(userId, pageable);
         if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            var allMovies = movieService.getAllMoviesWithAvgGradeDto(pageable);
+            return ResponseEntity.ok(allMovies);
         } else {
             return ResponseEntity.ok(movies);
         }
     }
 
-    @Operation(summary = "Search movies by title", description = "Searches for movies by their title.")
-    @GetMapping("/findByTitle")
-    public ResponseEntity<List<Movie>> getMoviesByTitle(@RequestParam String title) {
-        var movies = movieService.search(title);
-        if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.ok(movies);
-        }
-    }
+
+
+
 
     @Operation(summary = "Add a grade to a movie", description = "Adds a grade to a movie by movie ID and returns the average grade.")
     @PostMapping("/{id}/grade")
-    public ResponseEntity<?> addMovieGrade(@PathVariable Long id,@RequestParam int grade) {
-        if (grade < 1 || grade > 10) {
-            return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
-        }
-        if (!movieRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        var movieGrade = movieGradeService.addGrade(id, grade);
-        if (movieGrade == null) {
-            return ResponseEntity.notFound().build();
-        } else {
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
+    public ResponseEntity<?> addMovieGrade(@AuthenticationPrincipal Jwt jwt,@PathVariable Long id, @RequestParam int grade) {
+        var userId = jwt.getClaimAsString("sub");
+        if(movieGradeService.existsGrade(jwt.getClaimAsString("sub"), id)) {
+            movieGradeService.updateGrade(userId, id, grade);
             var avgGrade = movieGradeService.getAvgGrade(id);
-            return ResponseEntity.status(201).body(avgGrade);
+            return ResponseEntity.ok(avgGrade);
         }
+
+        movieGradeService.addGrade(userId, id, grade);
+
+        var avgGrade = movieGradeService.getAvgGrade(id);
+        return ResponseEntity.status(201).body(avgGrade);
+
     }
 
     @Operation(summary = "Update a movie", description = "Updates an existing movie by its ID.")
     @PutMapping("/{id}")
-    public ResponseEntity<Movie> updateMovie(@PathVariable Long id, @RequestBody Movie movie) {
-        if (!movieRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
+    @PreAuthorize("hasRole('client_admin')")
+    public ResponseEntity<MovieWithAvgGradeDto> updateMovie(@PathVariable Long id, @RequestBody Movie movie) {
         var newMovie = movieService.updateMovie(id, movie);
         return ResponseEntity.ok(newMovie);
-
-
     }
+
+
 
     @Operation(summary = "Get average grade of a movie", description = "Retrieves the average grade of a movie by its ID.")
     @GetMapping("/{id}/average-grade")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
     public ResponseEntity<Double> getAverageGrade(@PathVariable Long id) {
+        movieService.getMovieById(id);
         var avgGrade = movieGradeService.getAvgGrade(id);
-        if (avgGrade == null) {
-            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(avgGrade);
+    }
+
+
+    @Operation(summary = "Get all movies sorted by avg grades desc", description = "Retrieves a list of all movies sorted by their average grades in descending order.")
+    @GetMapping("/sortedByAvgGradeDesc")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> getAllMoviesSortedByAvgGradeDesc(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.getMoviesWithAvgGradeDesc(pageable);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+
+        }
+    }
+    @Operation(summary = "Get all movies sorted by avg grades asc", description = "Retrieves a list of all movies sorted by their average grades in ascending order.")
+    @GetMapping("/sortedByAvgGradeAsc")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> getAllMoviesSortedByAvgGradeAsc(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.getMoviesWithAvgGradeAsc(pageable);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @Operation(summary = "Get top 10 movies by average grade", description = "Retrieves the top 10 movies sorted by their average grades in descending order.")
+    @GetMapping("/top10ByAvgGrade")
+    @PreAuthorize("hasRole('client_admin') or hasRole('client_user')")
+    public ResponseEntity<List<MovieWithAvgGradeDto>> getTop10MoviesByAvgGrade()
+    {
+        var movies = movieService.getTopTenMoviesWithAvgGrade();
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+
+
+    @Operation(summary = "Get average grade by user ID", description = "Retrieves the average grade given by a user across all movies they have rated.")
+    @GetMapping("/average-grade-by-user")
+    public ResponseEntity<?> getAvgGradeByUserId(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getClaimAsString("sub");
+        Double avgGrade = movieGradeService.getAvgGradeByUserId(userId);
+        if (avgGrade == 0.0) {
+            return ResponseEntity.ok("You have not rated any movies yet.");
         }
         return ResponseEntity.ok(avgGrade);
     }
 
-    @Operation(summary = "Get movie with average grade", description = "Retrieves a movie along with its average grade by its ID.")
-    @GetMapping("/{id}/details")
-    public ResponseEntity<MovieWithAvgGradeDto> getMovieWithAvgGrade(@PathVariable Long id) {
-        var movie = movieService.getMovieById(id);
-        if (movie == null) {
-            return ResponseEntity.notFound().build();
+    @Operation(summary = "Get average grade by user ID in a specific year and month", description = "Retrieves the average grade given by a user in a specific year and month.")
+    @GetMapping("/avg-grade-by-user-y-m")
+    public ResponseEntity<?> getAvgGradeByUserIdInYearAndMonth(@AuthenticationPrincipal Jwt jwt, @RequestParam int year, @RequestParam int month) {
+        String userId = jwt.getClaimAsString("sub");
+        Double avgGrade = movieGradeService.getAvgGradeGivenYearAndMonth(userId, year, month);
+        if (avgGrade == 0.0) {
+            return ResponseEntity.ok("You have not rated any movies in this month and year.");
         }
-        Double avgGrade = movieGradeService.getAvgGrade(id);
-
-        var movieWithAvgGradeDto = new MovieWithAvgGradeDto(
-                movie.getTitle(),
-                movie.getMovie_year(),
-                movie.getCategory(),
-                movie.getDescription(),
-                movie.getPrizes(),
-                movie.getWorld_premiere(),
-                movie.getPolish_premiere(),
-                movie.getTag(),
-                avgGrade
-        );
-        return ResponseEntity.ok(movieWithAvgGradeDto);
+        return ResponseEntity.ok(avgGrade);
     }
 
 
-    @Operation(summary = "Get new movies", description = "Retrieves a list of movies that contain a specific tag.")
+    @GetMapping("/{id}")
+    public ResponseEntity<MovieWithAvgGradeDto> getMovieWithAvgGradeDto(@PathVariable Long id) {
+        var movieWithAvgGrade = movieService.getMovieWithAvgGradeById(id);
+        return ResponseEntity.ok(movieWithAvgGrade);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> getAllMoviesWithAvgGradeDto(@RequestParam (defaultValue = "0") int page,
+                                                                                  @RequestParam(defaultValue = "20") int size)
+    {
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.getAllMoviesWithAvgGradeDto(pageable);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(movies);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> searchMoviesWithAvgGradeByTitle(
+            @RequestParam String title,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.searchMoviesWithAvgGradeByTitle(title, pageable);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
+    @GetMapping("/findByCategory")
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> findMoviesByCategoryWithAvgGrade(
+            @RequestParam String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.findMoviesByCategoryWithAvgGrade(category, pageable);
+        if (movies.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(movies);
+        }
+    }
+
     @GetMapping("/findNew")
-    public ResponseEntity<List<Movie>> getMoviesByTag() {
-        String tag = "new";
-        var movies = movieService.getMoviesByTag(tag);
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> getMoviesByTagDto(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        var tag = "new";
+        var movies = movieService.getMoviesByTagWithAvgGrade(tag, pageable);
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {
@@ -164,22 +236,14 @@ public class MovieController {
         }
     }
 
-    @Operation(summary = "Get movies by premiere year", description = "Retrieves a list of movies that premiered in a specific year.")
-    @GetMapping("/premiereYear")
-    public ResponseEntity<List<Movie>> getMoviesByPremiereYear(@RequestParam int premiereYear) {
-        var movies = movieService.getMoviesByPremiereYear(premiereYear);
-        if (movies.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.ok(movies);
-        }
-    }
-
-
-    @Operation(summary = "Get movies by polish premiere month and year", description = "Retrieves a list of movies that premiered in a specific month and year.")
     @GetMapping("/polishPremiereMonthAndYear")
-    public ResponseEntity<List<Movie>> getMoviesByPolishPremiereMonthAndYear(@RequestParam int month, @RequestParam int year) {
-        var movies = movieService.getMoviesByPolishPremiereMonthAndYear(month, year);
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> getMoviesByPolishPremiereMonthAndYearWithAvgGrade(
+            @RequestParam int month,
+            @RequestParam int year,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.getMoviesByPolishPremiereMonthAndYearWithAvgGrade(month, year, pageable);
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {
@@ -187,16 +251,21 @@ public class MovieController {
         }
     }
 
-    @Operation(summary = "Get movies by world premiere month and year", description = "Retrieves a list of movies that premiered worldwide in a specific month and year.")
     @GetMapping("/worldPremiereMonthAndYear")
-    public ResponseEntity<List<Movie>> getMoviesByWorldPremiereMonthAndYear(@RequestParam int month, @RequestParam int year) {
-        var movies = movieService.getMoviesByWorldPremiereMonthAndYear(month, year);
+    public ResponseEntity<Page<MovieWithAvgGradeDto>> getMoviesByWorldPremiereMonthAndYearWithAvgGrade(
+            @RequestParam int month,
+            @RequestParam int year,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        var movies = movieService.getMoviesByWorldPremiereMonthAndYearWithAvgGrade(month, year, pageable);
         if (movies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.ok(movies);
         }
     }
+
 
 
 

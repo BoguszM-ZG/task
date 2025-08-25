@@ -12,14 +12,4 @@ VALUES
        (10, 'Gladiator', 2000, 'Action', 'A former Roman General...', 'Oscar');
 
 
-INSERT INTO movies.movie_grade (movie_id, grade)
-VALUES (1, 9),
-       (1, 8),
-       (2, 10),
-       (3, 9),
-       (4, 10),
-       (5, 9),
-       (6, 8),
-       (7, 9),
-       (8, 7),
-       (9, 8);
+

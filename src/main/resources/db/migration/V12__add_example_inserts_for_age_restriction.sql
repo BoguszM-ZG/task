@@ -1,0 +1,10 @@
+UPDATE movies.movie SET age_restriction = 0 WHERE id = 1;
+UPDATE movies.movie SET age_restriction = 16 WHERE id = 2;
+UPDATE movies.movie SET age_restriction = 18 WHERE id = 3;
+UPDATE movies.movie SET age_restriction = 0 WHERE id = 4;
+UPDATE movies.movie SET age_restriction = 16 WHERE id = 5;
+UPDATE movies.movie SET age_restriction = 18 WHERE id = 6;
+UPDATE movies.movie SET age_restriction = 0 WHERE id = 7;
+UPDATE movies.movie SET age_restriction = 16 WHERE id = 8;
+UPDATE movies.movie SET age_restriction = 18 WHERE id = 9;
+UPDATE movies.movie SET age_restriction = 0 WHERE id = 10;
