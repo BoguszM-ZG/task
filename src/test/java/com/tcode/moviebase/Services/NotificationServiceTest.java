@@ -3,6 +3,7 @@ package com.tcode.moviebase.Services;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Entities.MovieNotification;
 import com.tcode.moviebase.Entities.UserAlert;
+import com.tcode.moviebase.Exceptions.NotificationException;
 import com.tcode.moviebase.Repositories.MovieNotificationRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import com.tcode.moviebase.Repositories.UserAlertRepository;
@@ -33,16 +34,25 @@ class NotificationServiceTest {
     @InjectMocks
     private NotificationService notificationService;
 
+
+
     @Test
-    void testExistsNotification() {
-        when(movieNotificationRepository.existsByUserIdAndMovieId("user", 1L)).thenReturn(true);
-        assertTrue(notificationService.existsNotification("user", 1L));
+    void removeNotification_success() {
+        when(movieNotificationRepository.existsByUserIdAndMovieId("user", 2L)).thenReturn(true);
+
+        notificationService.removeNotification("user", 2L);
+
+        verify(movieNotificationRepository).deleteByUserIdAndMovieId("user", 2L);
     }
 
     @Test
-    void testRemoveNotification() {
-        notificationService.removeNotification("user", 2L);
-        verify(movieNotificationRepository).deleteByUserIdAndMovieId("user", 2L);
+    void removeNotification_notExists_throws() {
+        when(movieNotificationRepository.existsByUserIdAndMovieId("user", 2L)).thenReturn(false);
+
+        assertThrows(NotificationException.class,
+                () -> notificationService.removeNotification("user", 2L));
+
+        verify(movieNotificationRepository, never()).deleteByUserIdAndMovieId(anyString(), anyLong());
     }
 
     @Test

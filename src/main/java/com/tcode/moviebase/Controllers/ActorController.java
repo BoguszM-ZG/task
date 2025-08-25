@@ -1,17 +1,19 @@
 package com.tcode.moviebase.Controllers;
 
 
+import com.tcode.moviebase.Dtos.ActorDto;
 import com.tcode.moviebase.Entities.Actor;
-import com.tcode.moviebase.Repositories.ActorRepository;
 import com.tcode.moviebase.Services.ActorGradeService;
 import com.tcode.moviebase.Services.ActorService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -20,67 +22,32 @@ public class ActorController {
 
     private final ActorService actorService;
     private final ActorGradeService actorGradeService;
-    private final ActorRepository actorRepository;
 
 
-    @Operation(summary = "Get all actors", description = "Retrieves a list of all actors in the database.")
-    @GetMapping
-    public ResponseEntity<List<Actor>> findAllActors() {
-        var actors = actorService.findAllActors();
-        if (actors.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(actors);
-    }
 
     @Operation(summary = "Delete an actor", description = "Deletes an actor by its ID from the database.")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<Void> deleteActor(@PathVariable Long id) {
-        var exists = actorService.getActorById(id);
-        if (exists == null) {
-            return ResponseEntity.notFound().build();
-        }
         actorService.deleteActor(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get an actor by ID", description = "Retrieves an actor by its ID from the database.")
-    @GetMapping("/{id}")
-    public ResponseEntity<Actor> getActorById(@PathVariable Long id) {
-        var actor = actorService.getActorById(id);
-        if (actor == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(actor);
-    }
+
 
     @Operation(summary = "Add a new actor", description = "Adds a new actor to the database.")
     @PostMapping
     @PreAuthorize("hasRole('client_admin')")
     public ResponseEntity<?> addActor(@RequestBody Actor actor) {
-        if (actor.getFirstName() == null || actor.getLastName() == null || actor.getGender() == null) {
-            return ResponseEntity.badRequest().body("First name, last name and gender are required fields.");
-        }
-
         var savedActor = actorService.saveActor(actor);
-        return ResponseEntity.status(201).body(savedActor);
+        return ResponseEntity.ok().body(savedActor);
     }
 
     @Operation(summary = "Add a grade for an actor", description = "Adds a grade for an actor by its ID and returns average grade.")
     @PostMapping("/{actorId}/grade")
     public ResponseEntity<?> addActorGrade(@PathVariable Long actorId, @RequestParam int grade) {
-        if (grade < 1 || grade > 10) {
-            return ResponseEntity.badRequest().body("Grade must be between 1 and 10.");
-        }
+        actorGradeService.addActorGrade(actorId, grade);
 
-        if (!actorRepository.existsById(actorId)) {
-            return ResponseEntity.notFound().build();
-        }
-        var actorGrade = actorGradeService.addActorGrade(actorId, grade);
-        if (actorGrade == null) {
-            return ResponseEntity.badRequest().body("Failed to add grade for actor.");
-    }
         var avgGrade = actorGradeService.getAvgGrade(actorId);
 
         return ResponseEntity.status(201).body(avgGrade);
@@ -101,12 +68,27 @@ public class ActorController {
     @Operation(summary = "Update an actor", description = "Updates an existing actor by its ID.")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('client_admin')")
-    public ResponseEntity<Actor> updateActor(@PathVariable Long id, @RequestBody Actor actor) {
-        if (!actorRepository.existsById(id)){
-        return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ActorDto> updateActor(@PathVariable Long id, @RequestBody Actor actor) {
         var updatedActor = actorService.updateActor(id, actor);
         return ResponseEntity.ok(updatedActor);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ActorDto> getActorDtoById(@PathVariable Long id){
+        var actorDto = actorService.getActorDtoById(id);
+        return ResponseEntity.ok(actorDto);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<ActorDto>> getAllActors(@RequestParam (defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        var actorsDto = actorService.getActorsDto(pageable);
+        if (actorsDto.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(actorsDto);
+
     }
 
 }

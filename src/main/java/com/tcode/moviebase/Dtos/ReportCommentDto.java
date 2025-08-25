@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ReportDto {
+public class ReportCommentDto {
     private Long id;
     private String userId;
     private Long commentId;

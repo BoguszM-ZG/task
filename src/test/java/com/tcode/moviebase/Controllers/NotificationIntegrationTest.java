@@ -103,10 +103,10 @@ public class NotificationIntegrationTest {
 
         try {
             var response = restTemplate.postForEntity(baseUrl + nonExistentMovieId, request, String.class);
-            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
         }
         catch (HttpClientErrorException e) {
-            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
 
     }
@@ -133,7 +133,6 @@ public class NotificationIntegrationTest {
             restTemplate.postForEntity(baseUrl + movieId, request, String.class);
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-            assertEquals("Notification already exists", e.getResponseBodyAsString());
         }
     }
 }

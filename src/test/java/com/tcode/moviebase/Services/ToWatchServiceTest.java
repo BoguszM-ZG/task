@@ -1,118 +1,168 @@
 package com.tcode.moviebase.Services;
 
-
-
 import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Entities.ToWatch;
+import com.tcode.moviebase.Exceptions.MovieNotFoundException;
+import com.tcode.moviebase.Exceptions.ToWatchException;
+import com.tcode.moviebase.Mappers.MovieMapper;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import com.tcode.moviebase.Repositories.ToWatchRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ToWatchServiceTest {
-
-    @Mock
-    private MovieRepository movieRepository;
+class ToWatchServiceTest {
 
     @Mock
     private ToWatchRepository toWatchRepository;
+    @Mock
+    private MovieRepository movieRepository;
+    @Mock
+    private MovieMapper movieMapper;
 
     @InjectMocks
     private ToWatchService toWatchService;
 
+    private final String userId = "user-1";
+    private final Long movieId = 10L;
+    private final Pageable pageable = PageRequest.of(0, 5);
+
     @Test
-    void testAddToWatchMovie() {
-        String userId = "user1";
-        Long movieId = 1L;
-        var movie = new Movie();
+    void addToWatchMovie_success() {
+        var movie = mock(Movie.class);
+        var dto = mock(MovieWithAvgGradeDto.class);
+
         when(movieRepository.findById(movieId)).thenReturn(Optional.of(movie));
+        when(toWatchRepository.existsByUserIdAndMovieId(userId, movieId)).thenReturn(false);
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie)).thenReturn(dto);
+
         var result = toWatchService.addToWatchMovie(userId, movieId);
-        assertEquals(movie, result);
-        verify(toWatchRepository).save(ArgumentMatchers.any(ToWatch.class));
+
+        assertEquals(dto, result);
+        verify(toWatchRepository).save(any(ToWatch.class));
     }
 
     @Test
-    void testGetToWatchMovies() {
-        String userId = "user1";
-        var movies = List.of(new Movie());
-        when(toWatchRepository.findMoviesByUserId(userId)).thenReturn(movies);
-        var result = toWatchService.getToWatchMovies(userId);
-        assertEquals(movies, result);
+    void addToWatchMovie_movieNotFound() {
+        when(movieRepository.findById(movieId)).thenReturn(Optional.empty());
+        assertThrows(MovieNotFoundException.class,
+                () -> toWatchService.addToWatchMovie(userId, movieId));
+        verify(toWatchRepository, never()).save(any());
     }
 
     @Test
-    void testExistsToWatchMovie() {
-        String userId = "user1";
-        Long movieId = 1L;
+    void addToWatchMovie_duplicate() {
+        var movie = mock(Movie.class);
+        when(movieRepository.findById(movieId)).thenReturn(Optional.of(movie));
         when(toWatchRepository.existsByUserIdAndMovieId(userId, movieId)).thenReturn(true);
-        boolean exists = toWatchService.existsToWatchMovie(userId, movieId);
-        assertTrue(exists);
+
+        assertThrows(ToWatchException.class,
+                () -> toWatchService.addToWatchMovie(userId, movieId));
+        verify(toWatchRepository, never()).save(any());
     }
 
     @Test
-    void testRemoveToWatchMovie() {
-        String userId = "user1";
-        Long movieId = 1L;
+    void getToWatchMovies() {
+        var movie1 = mock(Movie.class);
+        var movie2 = mock(Movie.class);
+        var dto1 = mock(MovieWithAvgGradeDto.class);
+        var dto2 = mock(MovieWithAvgGradeDto.class);
+
+        when(toWatchRepository.findMoviesByUserId(userId, pageable))
+                .thenReturn(new PageImpl<>(List.of(movie1, movie2), pageable, 2));
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie1)).thenReturn(dto1);
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie2)).thenReturn(dto2);
+
+        Page<MovieWithAvgGradeDto> page = toWatchService.getToWatchMovies(userId, pageable);
+
+        assertEquals(2, page.getTotalElements());
+        assertEquals(List.of(dto1, dto2), page.getContent());
+    }
+
+    @Test
+    void removeToWatchMovie_success() {
+        when(toWatchRepository.existsByUserIdAndMovieId(userId, movieId)).thenReturn(true);
+
         toWatchService.removeToWatchMovie(userId, movieId);
+
         verify(toWatchRepository).removeByUserIdAndMovieId(userId, movieId);
     }
 
     @Test
-    void testGetToWatchMoviesByCreatedAtNewest() {
-        String userId = "user1";
-        var movies = List.of(new Movie());
-        when(toWatchRepository.findMoviesByCreatedAt_Latest(userId)).thenReturn(movies);
-        var result = toWatchService.getToWatchMoviesByCreatedAtNewest(userId);
-        assertEquals(movies, result);
+    void removeToWatchMovie_notFound() {
+        when(toWatchRepository.existsByUserIdAndMovieId(userId, movieId)).thenReturn(false);
+        assertThrows(ToWatchException.class,
+                () -> toWatchService.removeToWatchMovie(userId, movieId));
+        verify(toWatchRepository, never()).removeByUserIdAndMovieId(anyString(), anyLong());
     }
 
     @Test
-    void testGetToWatchMoviesByCreatedAtOldest() {
-        String userId = "user1";
-        var movies = List.of(new Movie());
-        when(toWatchRepository.findMoviesByCreatedAt_Oldest(userId)).thenReturn(movies);
-        var result = toWatchService.getToWatchMoviesByCreatedAtOldest(userId);
-        assertEquals(movies, result);
+    void getToWatchMoviesByCreatedAtNewest() {
+        var movie = mock(Movie.class);
+        var dto = mock(MovieWithAvgGradeDto.class);
+        when(toWatchRepository.findMoviesByCreatedAt_Latest(userId, pageable))
+                .thenReturn(new PageImpl<>(List.of(movie), pageable, 1));
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie)).thenReturn(dto);
+
+        var page = toWatchService.getToWatchMoviesByCreatedAtNewest(userId, pageable);
+        assertEquals(dto, page.getContent().getFirst());
     }
 
     @Test
-    void testGetToWatchMoviesByTitleZ_A() {
-        String userId = "user1";
-        var movies = List.of(mock(MovieWithAvgGradeDto.class));
-        when(toWatchRepository.findMoviesByTitleZ_A(userId)).thenReturn(movies);
-        var result = toWatchService.getToWatchMoviesByTitleZ_A(userId);
-        assertEquals(movies, result);
+    void getToWatchMoviesByCreatedAtOldest() {
+        var movie = mock(Movie.class);
+        var dto = mock(MovieWithAvgGradeDto.class);
+        when(toWatchRepository.findMoviesByCreatedAt_Oldest(userId, pageable))
+                .thenReturn(new PageImpl<>(List.of(movie), pageable, 1));
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie)).thenReturn(dto);
+
+        var page = toWatchService.getToWatchMoviesByCreatedAtOldest(userId, pageable);
+        assertEquals(dto, page.getContent().getFirst());
     }
 
     @Test
-    void testGetToWatchMoviesByTitleA_Z() {
-        String userId = "user1";
-        var movies = List.of(mock(MovieWithAvgGradeDto.class));
-        when(toWatchRepository.findMoviesByTitleA_Z(userId)).thenReturn(movies);
-        var result = toWatchService.getToWatchMoviesByTitleA_Z(userId);
-        assertEquals(movies, result);
+    void getToWatchMoviesByTitleZ_A() {
+        var movie = mock(Movie.class);
+        var dto = mock(MovieWithAvgGradeDto.class);
+        when(toWatchRepository.findMoviesByTitleZ_A(userId, pageable))
+                .thenReturn(new PageImpl<>(List.of(movie), pageable, 1));
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie)).thenReturn(dto);
+
+        var page = toWatchService.getToWatchMoviesByTitleZ_A(userId, pageable);
+        assertEquals(dto, page.getContent().getFirst());
     }
 
     @Test
-    void testGetToWatchMoviesByCategory() {
-        String userId = "user1";
-        String category = "Action";
-        var movies = List.of(mock(MovieWithAvgGradeDto.class));
-        when(toWatchRepository.findMoviesByCategory(userId, category)).thenReturn(movies);
-        var result = toWatchService.getToWatchMoviesByCategory(userId, category);
-        assertEquals(movies, result);
+    void getToWatchMoviesByTitleA_Z() {
+        var movie = mock(Movie.class);
+        var dto = mock(MovieWithAvgGradeDto.class);
+        when(toWatchRepository.findMoviesByTitleA_Z(userId, pageable))
+                .thenReturn(new PageImpl<>(List.of(movie), pageable, 1));
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie)).thenReturn(dto);
+
+        var page = toWatchService.getToWatchMoviesByTitleA_Z(userId, pageable);
+        assertEquals(dto, page.getContent().getFirst());
+    }
+
+    @Test
+    void getToWatchMoviesByCategory() {
+        var movie = mock(Movie.class);
+        var dto = mock(MovieWithAvgGradeDto.class);
+        when(toWatchRepository.findMoviesByCategory(userId, "Action", pageable))
+                .thenReturn(new PageImpl<>(List.of(movie), pageable, 1));
+        when(movieMapper.movieToMovieWithAvgGradeDto(movie)).thenReturn(dto);
+
+        var page = toWatchService.getToWatchMoviesByCategory(userId, "Action", pageable);
+        assertEquals(dto, page.getContent().getFirst());
     }
 }

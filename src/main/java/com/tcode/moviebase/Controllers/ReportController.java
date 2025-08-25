@@ -1,11 +1,12 @@
 package com.tcode.moviebase.Controllers;
 
 
-import com.tcode.moviebase.Dtos.ReportDto;
+
 import com.tcode.moviebase.Services.CommentService;
 import com.tcode.moviebase.Services.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,23 +19,15 @@ import org.springframework.web.bind.annotation.*;
 public class ReportController {
 
     public final ReportService reportService;
-    private final CommentService commentService;
 
     @PostMapping("/{commentId}")
     public ResponseEntity<?> reportComment(@AuthenticationPrincipal Jwt jwt, @PathVariable Long commentId, @RequestBody String reason) {
-        if (!commentService.checkIfCommentExists(commentId)) {
-            return ResponseEntity.badRequest().body("Comment does not exist");
-        }
+
         var userId = jwt.getClaimAsString("sub");
-        if (userId == null) {
-            return ResponseEntity.badRequest().body("You must be logged in to report a comment.");
-        }
+
         var report = reportService.reportComment(commentId, userId, reason);
-        if (report != null) {
-            return ResponseEntity.ok(report.getReason());
-        } else {
-            return ResponseEntity.badRequest().body("Failed to report comment. Please try again.");
-        }
+
+        return ResponseEntity.ok(report.getReason());
     }
 
 
@@ -42,9 +35,6 @@ public class ReportController {
     @PostMapping("/approve/{reportId}")
     @PreAuthorize("hasRole('client_admin') ")
     public ResponseEntity<?> approveReport(@PathVariable Long reportId) {
-        if (!reportService.checkIfReportExists(reportId)) {
-            return ResponseEntity.badRequest().body("Report does not exist.");
-        }
         reportService.approveReport(reportId);
         return ResponseEntity.ok("Report approved and comment deleted.");
     }
@@ -53,9 +43,6 @@ public class ReportController {
     @PostMapping("/reject/{reportId}")
     @PreAuthorize("hasRole('client_admin') ")
     public ResponseEntity<?> rejectReport(@PathVariable Long reportId) {
-        if (!reportService.checkIfReportExists(reportId)) {
-            return ResponseEntity.badRequest().body("Report does not exist.");
-        }
         reportService.rejectReport(reportId);
         return ResponseEntity.ok("Report rejected.");
     }
@@ -63,22 +50,14 @@ public class ReportController {
     @Operation(summary = "Get all reports", description = "Retrieve all reports. Requires admin privileges.")
     @GetMapping
     @PreAuthorize("hasRole('client_admin') ")
-    public ResponseEntity<?> getAllReports() {
-        var reports = reportService.getAllReports();
+    public ResponseEntity<?> getAllReports(@RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        var reports = reportService.getAllReports(pageable);
         if (reports.isEmpty()) {
             return ResponseEntity.ok("No reports found.");
         } else {
-            var reportDtos = reports.stream()
-                .map(report -> new ReportDto(
-                        report.getId(),
-                        report.getUserId(),
-                        report.getComment().getId(),
-                        report.getComment().getCommentText(),
-                        report.getReason(),
-                        report.getCreatedAt().toString()
-                ))
-                .toList();
-            return ResponseEntity.ok(reportDtos);
+            return ResponseEntity.ok(reports);
         }
     }
 }

@@ -67,6 +67,9 @@ public class Movie {
     @Column(name = "age_restriction")
     private Integer ageRestriction;
 
+    @ManyToMany(mappedBy = "movies")
+    private Set<Director> directors = new HashSet<>();
+
 
 
 }

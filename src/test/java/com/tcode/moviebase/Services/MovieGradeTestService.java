@@ -3,10 +3,12 @@ package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Entities.MovieGrade;
+import com.tcode.moviebase.Exceptions.MovieNotFoundException;
 import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -78,9 +80,11 @@ public class MovieGradeTestService {
         var userId = "user1";
         when(movieRepository.findById(movieId)).thenReturn(Optional.empty());
 
-        MovieGrade result = movieGradeService.addGrade(userId, movieId, grade);
 
-        assertNull(result);
+        assertThrows(MovieNotFoundException.class, () -> {
+            movieGradeService.addGrade(userId, movieId, grade);
+        });
+
     }
 
     @Test
@@ -159,18 +163,32 @@ public class MovieGradeTestService {
     void testUpdateGrade() {
         String userId = "user1";
         Long movieId = 1L;
-        int grade = 5;
-        MovieGrade existingGrade = new MovieGrade();
-        existingGrade.setUserId(userId);
-        existingGrade.setMovie(new Movie());
-        existingGrade.setGrade(3);
+        int newGrade = 5;
 
-        when(movieGradeRepository.findByUserIdAndMovieId(userId, movieId)).thenReturn(existingGrade);
+        Movie movie = new Movie();
+        movie.setId(movieId);
 
-        movieGradeService.updateGrade(userId, movieId, grade);
+        MovieGrade existing = new MovieGrade();
+        existing.setUserId(userId);
+        existing.setMovie(movie);
+        existing.setGrade(3);
 
-        verify(movieGradeRepository).delete(existingGrade);
-        verify(movieGradeRepository).save(any(MovieGrade.class));
+        when(movieGradeRepository.findByUserIdAndMovieId(userId, movieId)).thenReturn(existing);
+        when(movieRepository.findById(movieId)).thenReturn(Optional.of(movie));
+
+        when(movieGradeRepository.save(any(MovieGrade.class))).thenAnswer(i -> i.getArgument(0));
+
+        movieGradeService.updateGrade(userId, movieId, newGrade);
+
+        verify(movieGradeRepository).delete(existing);
+
+        ArgumentCaptor<MovieGrade> captor = ArgumentCaptor.forClass(MovieGrade.class);
+        verify(movieGradeRepository).save(captor.capture());
+
+        MovieGrade saved = captor.getValue();
+        assertEquals(userId, saved.getUserId());
+        assertEquals(movie, saved.getMovie());
+        assertEquals(newGrade, saved.getGrade());
     }
 
     @Test

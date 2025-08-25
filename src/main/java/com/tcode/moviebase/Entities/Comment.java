@@ -1,6 +1,6 @@
 package com.tcode.moviebase.Entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,7 +17,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "comments", schema = "movies")
 public class Comment {
-    @JsonIgnore
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

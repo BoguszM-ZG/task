@@ -15,7 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(name = "movie_trailer", schema = "movies")
 public class MovieTrailer {
 
-    @JsonIgnore
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -34,7 +34,7 @@ public class MovieTrailer {
     private String contentType;
 
 
-    @JsonIgnore
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

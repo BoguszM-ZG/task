@@ -17,13 +17,13 @@ import java.time.Instant;
 @Entity
 @Table(name = "movie_grade", schema = "movies")
 public class MovieGrade {
-    @JsonIgnore
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @JsonIgnore
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

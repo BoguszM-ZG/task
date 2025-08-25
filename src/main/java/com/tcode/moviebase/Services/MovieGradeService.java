@@ -1,8 +1,10 @@
 package com.tcode.moviebase.Services;
 
 
-import com.tcode.moviebase.Entities.Movie;
+
 import com.tcode.moviebase.Entities.MovieGrade;
+import com.tcode.moviebase.Exceptions.GradeOutOfRangeException;
+import com.tcode.moviebase.Exceptions.MovieNotFoundException;
 import com.tcode.moviebase.Repositories.MovieGradeRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,11 @@ public class MovieGradeService {
 
     public MovieGrade addGrade(String userId, Long movieId, int grade) {
 
-        Movie movie = movieRepository.findById(movieId).orElse(null);
+        var movie = movieRepository.findById(movieId).orElseThrow( () -> new MovieNotFoundException("Movie not found"));
+
+        if (grade < 0 || grade > 10) {
+            throw new GradeOutOfRangeException(grade);
+        }
         MovieGrade movieGrade = new MovieGrade();
         movieGrade.setUserId(userId);
         movieGrade.setMovie(movie);

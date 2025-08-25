@@ -1,6 +1,6 @@
 package com.tcode.moviebase.Entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -66,7 +66,6 @@ public class    Actor {
         joinColumns = @JoinColumn(name = "actor_id"),
         inverseJoinColumns = @JoinColumn(name = "movie_id")
     )
-    @JsonIgnore
     private List<Movie> movies = new ArrayList<>();
 
 }

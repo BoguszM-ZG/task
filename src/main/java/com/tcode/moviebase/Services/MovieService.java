@@ -2,10 +2,14 @@ package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
 import com.tcode.moviebase.Entities.Movie;
-import com.tcode.moviebase.Repositories.MovieGradeRepository;
+import com.tcode.moviebase.Exceptions.InvalidMovieDataException;
+import com.tcode.moviebase.Exceptions.MovieNotFoundException;
+import com.tcode.moviebase.Mappers.MovieMapper;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import com.tcode.moviebase.Repositories.WatchedMoviesRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,44 +19,33 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MovieService {
-    private final MovieGradeRepository movieGradeRepository;
     private final MovieRepository movieRepository;
-    private final MovieGradeService movieGradeService;
     private final WatchedMoviesRepository watchedMoviesRepository;
+    private final MovieMapper movieMapper;
 
-    public List<Movie> getAllMovies() {
-        return movieRepository.findAll();
+
+    public MovieWithAvgGradeDto addMovie(Movie movie) {
+        if (movie.getTitle() == null || movie.getMovie_year() == null) {
+            throw new InvalidMovieDataException("Title and movie year are required");
+        }
+        movieRepository.save(movie);
+        return movieMapper.movieToMovieWithAvgGradeDto(movie);
     }
-
-    public Movie addMovie(Movie movie) {
-        return movieRepository.save(movie);
-    }
-
 
     @Transactional
     public void deleteMovie(Long id) {
-        movieRepository.deleteMovieById(id);
-    }
-
-    public Movie getMovieById(Long id) {
-        return movieRepository.findById(id).orElse(null);
-    }
-
-    public List<Movie> search(String search) {
-        return movieRepository.findByTitleIgnoreCaseContaining(search);
-    }
-
-    public List<Movie> findByCategory(String category) {
-        return movieRepository.findMoviesByCategory(category);
+        if (movieRepository.existsById(id)) {
+            movieRepository.deleteById(id);
+        } else {
+            throw new MovieNotFoundException("Movie not found");
+        }
     }
 
 
+    public MovieWithAvgGradeDto updateMovie(Long id, Movie movie) {
+        Movie existingMovie = movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found"));
 
-    public Movie updateMovie(Long id, Movie movie) {
-        Movie existingMovie = movieRepository.findById(id).orElse(null);
 
-        existingMovie.setTitle(movie.getTitle());
-        existingMovie.setMovie_year(movie.getMovie_year());
         existingMovie.setCategory(movie.getCategory());
         existingMovie.setDescription(movie.getDescription());
         existingMovie.setPrizes(movie.getPrizes());
@@ -60,56 +53,82 @@ public class MovieService {
         existingMovie.setWorld_premiere(movie.getWorld_premiere());
         existingMovie.setPolish_premiere(movie.getPolish_premiere());
 
+        movieRepository.save(existingMovie);
 
-        return movieRepository.save(existingMovie);
-    }
 
-    public List<Movie> getMoviesByTag(String tag) {
-        return movieRepository.findByTagContaining(tag);
-    }
-
-    public List<Movie> getMoviesByPremiereYear(int premiereYear) {
-        return movieRepository.findAll().stream()
-                .filter(movie -> movie.getMovie_year() == premiereYear)
-                .toList();
+        return movieMapper.movieToMovieWithAvgGradeDto(existingMovie);
     }
 
 
-    public List<Movie> getMoviesByPolishPremiereMonthAndYear(int month, int year) {
-        return movieRepository.findMovieByPolishPremiereMonthAndYear(month, year);
+    public Movie getMovieById(Long id) {
+        return movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie not found"));
     }
 
-    public List<Movie> getMoviesByWorldPremiereMonthAndYear(int month, int year) {
-        return movieRepository.findMovieByWorldPremiereMonthAndYear(month, year);
+
+    public Page<MovieWithAvgGradeDto> getMoviesWithAvgGradeDesc(Pageable pageable) {
+        return movieRepository.findAllMoviesWithAvgGradeDesc(pageable);
     }
 
-    public List<MovieWithAvgGradeDto> getMoviesWithAvgGradeDesc() {
-        return movieRepository.findAllMoviesWithAvgGradeDesc();
+    public Page<MovieWithAvgGradeDto> getMoviesWithAvgGradeAsc(Pageable pageable) {
+        return movieRepository.findAllMoviesWithAvgGradeAsc(pageable);
     }
 
-    public List<MovieWithAvgGradeDto> getMoviesWithAvgGradeAsc() {
-        return movieRepository.findAllMoviesWithAvgGradeAsc();
-    }
     public List<MovieWithAvgGradeDto> getTopTenMoviesWithAvgGrade() {
         return movieRepository.findTop10MoviesByAvgGrade();
     }
 
 
-    public List<MovieWithAvgGradeDto> getMoviesPropositionForUser(String userId) {
+    public Page<MovieWithAvgGradeDto> getMoviesPropositionForUser(String userId, Pageable pageable) {
         var movies = watchedMoviesRepository.findMoviesByUserId(userId);
-        List<String> categories = movies.stream()
-                .map(Movie::getCategory)
-                .distinct()
-                .toList();
-        return movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, movies);
+        List<String> categories = movies.stream().map(Movie::getCategory).distinct().toList();
+        return movieRepository.findMoviesPropositionByCategoriesDontIncludeWatchedMovies(categories, movies, pageable);
     }
 
 
-    public List<MovieWithAvgGradeDto> getAllMoviesWithAvgGrade() {
-        return movieRepository.findAllMoviesWithAvgGrade();
+    public boolean movieExists(Long id) {
+        return movieRepository.existsById(id);
     }
 
 
+    public MovieWithAvgGradeDto getMovieWithAvgGradeById(Long id) {
+        var movie = movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException("Movie does not exist"));
+        return movieMapper.movieToMovieWithAvgGradeDto(movie);
+    }
+
+    public Page<MovieWithAvgGradeDto> getAllMoviesWithAvgGradeDto(Pageable pageable) {
+        return movieRepository.findAll(pageable).map(movieMapper::movieToMovieWithAvgGradeDto);
+    }
+
+    public Page<MovieWithAvgGradeDto> searchMoviesWithAvgGradeByTitle(String title, Pageable pageable) {
+        return movieRepository.findByTitleIgnoreCaseContaining(title, pageable).map(movieMapper::movieToMovieWithAvgGradeDto);
+    }
+
+    public Page<MovieWithAvgGradeDto> findMoviesByCategoryWithAvgGrade(String category, Pageable pageable) {
+        return movieRepository.findMoviesByCategory(category, pageable).map(movieMapper::movieToMovieWithAvgGradeDto);
+    }
+
+    public Page<MovieWithAvgGradeDto> getMoviesByTagWithAvgGrade(String tag, Pageable pageable) {
+        return movieRepository.findByTagContaining(tag, pageable).map(movieMapper::movieToMovieWithAvgGradeDto);
+    }
+
+    public Page<MovieWithAvgGradeDto> getMoviesByPolishPremiereMonthAndYearWithAvgGrade(int month, int year, Pageable pageable) {
+        return movieRepository.findMovieByPolishPremiereMonthAndYear(month, year, pageable).map(movieMapper::movieToMovieWithAvgGradeDto);
+    }
+
+    public Page<MovieWithAvgGradeDto> getMoviesByWorldPremiereMonthAndYearWithAvgGrade(int month, int year, Pageable pageable) {
+        return movieRepository.findMovieByWorldPremiereMonthAndYear(month, year, pageable).map(movieMapper::movieToMovieWithAvgGradeDto);
+    }
 
 
 }
+
+
+
+
+
+
+
+
+
+
+

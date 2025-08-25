@@ -29,7 +29,7 @@ public class ForumThread {
     @Column(name = "thread_name", nullable = false, length = 100)
     private String threadName;
 
-    @JsonIgnore
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

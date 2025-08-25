@@ -2,6 +2,8 @@ package com.tcode.moviebase.Services;
 
 
 import com.tcode.moviebase.Entities.ActorGrade;
+import com.tcode.moviebase.Exceptions.ActorNotFoundException;
+import com.tcode.moviebase.Exceptions.GradeOutOfRangeException;
 import com.tcode.moviebase.Repositories.ActorGradeRepository;
 import com.tcode.moviebase.Repositories.ActorRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,11 @@ public class ActorGradeService {
     private final ActorRepository actorRepository;
 
     public ActorGrade addActorGrade(Long actorId, int grade) {
-        var actor = actorRepository.findById(actorId).orElse(null);
+        var actor = actorRepository.findById(actorId).orElseThrow(() -> new ActorNotFoundException("Actor not found"));
+
+        if (grade < 1 || grade > 10) {
+            throw new GradeOutOfRangeException(grade);
+        }
         var actorGrade = new ActorGrade();
         actorGrade.setActor(actor);
         actorGrade.setGrade(grade);

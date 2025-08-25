@@ -1,20 +1,23 @@
 package com.tcode.moviebase.Controllers;
 
+import com.tcode.moviebase.Dtos.ActorDto;
 import com.tcode.moviebase.Entities.Actor;
 import com.tcode.moviebase.Security.TestSecurityConfig;
-import org.junit.jupiter.api.BeforeAll;
+import com.tcode.moviebase.Repositories.ActorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,61 +31,79 @@ class ActorControllerIntegrationTest {
 
     private String baseUrl;
 
-    private static RestTemplate restTemplate;
 
-    @BeforeAll
-    static void init() {
-        restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Autowired
+    private ActorRepository actorRepository;
+
+    static class PageResponse<T> {
+        private List<T> content;
+        public List<T> getContent() { return content; }
+        public void setContent(List<T> content) { this.content = content; }
     }
 
     @BeforeEach
     void setUp() {
         baseUrl = "http://localhost:" + port + "/actors";
+        actorRepository.deleteAll();
+    }
+
+    private Actor newActor() {
+        var a = new Actor();
+        a.setGender("Male");
+        a.setFirstName("Johnny");
+        a.setLastName("Test");
+        a.setAge(18);
+        a.setDateOfBirth(LocalDate.of(2005,1,1));
+        a.setPlaceOfBirth("Test");
+        a.setHeight(180);
+        a.setBiography("bio");
+        return a;
     }
 
     @Test
     void testGetAllActors() {
-        ResponseEntity<Actor[]> response = restTemplate.getForEntity(baseUrl, Actor[].class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        actorRepository.save(newActor());
+
+        ResponseEntity<PageResponse<ActorDto>> resp = restTemplate.exchange(
+                baseUrl + "?page=0&size=10",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<>() {}
+        );
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNotNull(resp.getBody());
+        assertFalse(resp.getBody().getContent().isEmpty());
     }
 
     @Test
     void testAddActorAndGetActorById() {
-        var actor = new Actor();
-        actor.setGender("Male");
-        actor.setFirstName("Johnny");
-        actor.setLastName("test");
-        actor.setAge(18);
-        actor.setDateOfBirth(LocalDate.of(2005, 1, 1));
-        actor.setPlaceOfBirth("test");
-        actor.setHeight(180);
-        actor.setBiography("test biography");
-        Actor savedActor = restTemplate.postForObject(baseUrl, actor, Actor.class);
-        ResponseEntity<Actor> response = restTemplate.getForEntity(baseUrl + "/" + savedActor.getId(), Actor.class);
+        restTemplate.postForObject(baseUrl, newActor(), Object.class);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(savedActor.getId(), response.getBody().getId());
+        Long id = actorRepository.findAll().stream()
+                .filter(a -> a.getFirstName().equals("Johnny") && a.getLastName().equals("Test"))
+                .map(Actor::getId)
+                .findFirst()
+                .orElseThrow();
+
+        ResponseEntity<ActorDto> resp =
+                restTemplate.getForEntity(baseUrl + "/" + id, ActorDto.class);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNotNull(resp.getBody());
+        assertEquals("Johnny", resp.getBody().getFirstName());
+        assertEquals("Test", resp.getBody().getLastName());
     }
 
     @Test
     void testDeleteActorById() {
-        var actor = new Actor();
-        actor.setGender("Male");
-        actor.setFirstName("Johnny");
-        actor.setLastName("test");
-        actor.setAge(18);
-        actor.setDateOfBirth(LocalDate.of(2005, 1, 1));
-        actor.setPlaceOfBirth("test");
-        actor.setHeight(180);
-        actor.setBiography("test biography");
+        Long id = actorRepository.save(newActor()).getId();
 
-        var savedActor = restTemplate.postForObject(baseUrl, actor, Actor.class);
-        restTemplate.delete(baseUrl + "/" + savedActor.getId());
+        restTemplate.delete(baseUrl + "/" + id);
 
         try {
-            restTemplate.getForEntity(baseUrl + "/" + savedActor.getId(), Actor.class);
+            restTemplate.getForEntity(baseUrl + "/" + id, ActorDto.class);
             fail("Should throw 404");
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
@@ -91,62 +112,46 @@ class ActorControllerIntegrationTest {
 
     @Test
     void testGetActorAvgGrade() {
-        var actor = new Actor();
-        actor.setGender("Male");
-        actor.setFirstName("Johnny");
-        actor.setLastName("test");
-        actor.setAge(18);
-        actor.setDateOfBirth(LocalDate.of(2005, 1, 1));
-        actor.setPlaceOfBirth("test");
-        actor.setHeight(180);
-        actor.setBiography("test biography");
+        Long id = actorRepository.save(newActor()).getId();
 
-        var savedActor = restTemplate.postForObject(baseUrl, actor, Actor.class);
+        restTemplate.postForEntity(baseUrl + "/" + id + "/grade?grade=5", null, Double.class);
+        restTemplate.postForEntity(baseUrl + "/" + id + "/grade?grade=4", null, Double.class);
 
-        restTemplate.postForEntity(baseUrl + "/" + savedActor.getId() + "/grade?grade=5", null, Double.class);
-        restTemplate.postForEntity(baseUrl + "/" + savedActor.getId() + "/grade?grade=4", null, Double.class);
+        ResponseEntity<Double> resp =
+                restTemplate.getForEntity(baseUrl + "/" + id + "/average-grade", Double.class);
 
-        ResponseEntity<Double> response = restTemplate.getForEntity(baseUrl + "/" + savedActor.getId() + "/average-grade", Double.class);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(4.5, response.getBody());
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNotNull(resp.getBody());
+        assertEquals(4.5, resp.getBody(), 0.0001);
     }
 
     @Test
     void testUpdateActor() {
-        var oldActor = new Actor();
-        oldActor.setGender("Male");
-        oldActor.setFirstName("Johnny");
-        oldActor.setLastName("test");
-        oldActor.setAge(18);
-        oldActor.setDateOfBirth(LocalDate.of(2005, 1, 1));
-        oldActor.setPlaceOfBirth("test");
-        oldActor.setHeight(180);
-        oldActor.setBiography("test biography");
+        Long id = actorRepository.save(newActor()).getId();
 
-        var savedActor = restTemplate.postForObject(baseUrl, oldActor, Actor.class);
-        var updateActor = new Actor();
-        updateActor.setGender("Male");
-        updateActor.setFirstName("test");
-        updateActor.setLastName("test");
-        updateActor.setAge(18);
-        updateActor.setDateOfBirth(LocalDate.of(2005, 1, 1));
-        updateActor.setPlaceOfBirth("test");
-        updateActor.setHeight(180);
-        updateActor.setBiography("test biography");
+        var update = new Actor();
+        update.setGender("Male");
+        update.setFirstName("Updated");
+        update.setLastName("Test");
+        update.setAge(19);
+        update.setDateOfBirth(LocalDate.of(2005,1,1));
+        update.setPlaceOfBirth("Test");
+        update.setHeight(181);
+        update.setBiography("updated bio");
 
-        restTemplate.put(baseUrl + "/" + savedActor.getId(), updateActor);
+        restTemplate.put(baseUrl + "/" + id, update);
 
-        var updatedActor = restTemplate.getForObject(baseUrl + "/" + savedActor.getId(), Actor.class);
-        assertEquals("test", updatedActor.getFirstName());
+        ActorDto after = restTemplate.getForObject(baseUrl + "/" + id, ActorDto.class);
+        assertNotNull(after);
+        assertEquals("Updated", after.getFirstName());
+        assertEquals(19, after.getAge());
     }
 
     @Test
     void testGetAvgGradeForNonExistentActor() {
-        Long nonExistentActorId = 999L;
+        Long id = 999L;
         try {
-            restTemplate.getForEntity(baseUrl + "/" + nonExistentActorId + "/average-grade", Double.class);
+            restTemplate.getForEntity(baseUrl + "/" + id + "/average-grade", Double.class);
             fail("Should throw 404");
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
@@ -155,10 +160,9 @@ class ActorControllerIntegrationTest {
 
     @Test
     void testAddGradeToNonExistentActor() {
-        Long nonExistentActorId = 999L;
-        int grade = 5;
+        Long id = 999L;
         try {
-            restTemplate.postForEntity(baseUrl + "/" + nonExistentActorId + "/grade?grade=" + grade, null, Double.class);
+            restTemplate.postForEntity(baseUrl + "/" + id + "/grade?grade=5", null, Double.class);
             fail("Should throw 404");
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
@@ -167,18 +171,9 @@ class ActorControllerIntegrationTest {
 
     @Test
     void testUpdateNonExistentActor() {
-        Long nonExistentActorId = 999L;
-        var a1 = new Actor();
-        a1.setGender("Male");
-        a1.setFirstName("test");
-        a1.setLastName("test");
-        a1.setAge(18);
-        a1.setDateOfBirth(LocalDate.of(2005, 1, 1));
-        a1.setPlaceOfBirth("test");
-        a1.setHeight(180);
-        a1.setBiography("test biography");
+        Long id = 999L;
         try {
-            restTemplate.put(baseUrl + "/" + nonExistentActorId, a1);
+            restTemplate.put(baseUrl + "/" + id, newActor());
             fail("Should throw 404");
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
@@ -187,20 +182,9 @@ class ActorControllerIntegrationTest {
 
     @Test
     void testAddGradeToActorWithInvalidGrade() {
-        var actor = new Actor();
-        actor.setGender("Male");
-        actor.setFirstName("Johnny");
-        actor.setLastName("test");
-        actor.setAge(18);
-        actor.setDateOfBirth(LocalDate.of(2005, 1, 1));
-        actor.setPlaceOfBirth("test");
-        actor.setHeight(180);
-        actor.setBiography("test biography");
-
-        var savedActor = restTemplate.postForObject(baseUrl, actor, Actor.class);
-
+        Long id = actorRepository.save(newActor()).getId();
         try {
-            restTemplate.postForEntity(baseUrl + "/" + savedActor.getId() + "/grade?grade=11", null, Double.class);
+            restTemplate.postForEntity(baseUrl + "/" + id + "/grade?grade=11", null, Double.class);
             fail("Should throw 400");
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
@@ -209,9 +193,9 @@ class ActorControllerIntegrationTest {
 
     @Test
     void testDeleteNonExistentActor() {
-        Long nonExistentActorId = 999L;
+        Long id = 999L;
         try {
-            restTemplate.delete(baseUrl + "/" + nonExistentActorId);
+            restTemplate.delete(baseUrl + "/" + id);
             fail("Should throw 404");
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());

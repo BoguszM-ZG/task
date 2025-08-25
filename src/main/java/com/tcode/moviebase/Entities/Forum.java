@@ -25,7 +25,7 @@ public class Forum {
     @Column(name = "forum_name", nullable = false, length = 1000)
     private String forumName;
 
-    @JsonIgnore
+
     @OneToMany(mappedBy = "forum", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ForumMember> forumMembers = new LinkedHashSet<>();
 

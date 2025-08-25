@@ -1,6 +1,6 @@
 package com.tcode.moviebase.Entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -13,13 +13,13 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 @Table(name = "actor_grades", schema = "movies")
 public class ActorGrade {
-    @JsonIgnore
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @JsonIgnore
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

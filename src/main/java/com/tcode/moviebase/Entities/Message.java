@@ -20,7 +20,7 @@ public class Message {
     private Long id;
 
 
-    @JsonIgnore
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

@@ -18,7 +18,7 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestTemplate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
@@ -54,6 +54,7 @@ public class CommentIntegrationTest {
 
     @Test
     void testAddAndGetComment() {
+        // given
         var movie = new Movie();
         movie.setTitle("test");
         movie.setMovie_year(2023);
@@ -64,28 +65,35 @@ public class CommentIntegrationTest {
         movieRepository.save(movie);
         Long movieId = movie.getId();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", jwtToken);
-        headers.set("Content-Type", "application/json");
-        String commentText = "great movie!";
+        HttpHeaders postHeaders = new HttpHeaders();
+        postHeaders.set("Authorization", jwtToken);
+        postHeaders.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpHeaders headers2 = new HttpHeaders();
-        headers2.set("Authorization", jwtToken);
-        HttpEntity<Void> request2 = new HttpEntity<>(null, headers2);
+        String commentJson = "\"great movie!\"";
+        ResponseEntity<?> addResp = restTemplate.postForEntity(
+                baseUrl + "/add/" + movieId,
+                new HttpEntity<>(commentJson, postHeaders),
+                Object.class
+        );
+        assertEquals(HttpStatus.OK, addResp.getStatusCode());
 
-        HttpEntity<String> request = new HttpEntity<>(commentText, headers);
+        HttpHeaders getHeaders = new HttpHeaders();
+        getHeaders.set("Authorization", jwtToken);
 
-        ResponseEntity<?> response = restTemplate.postForEntity(
-                baseUrl + "/add/" + movieId, request, Comment.class);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-
-        ResponseEntity<Comment[]> getResponse = restTemplate.exchange(
-                baseUrl + "/movie/" + movieId,
+        ResponseEntity<MovieControllerIntegrationTest.PageResponse<Comment>> getResp = restTemplate.exchange(
+                baseUrl + "/movie/" + movieId + "?page=0&size=10",
                 HttpMethod.GET,
-                request2,
-                Comment[].class);
-        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+                new HttpEntity<>(getHeaders),
+                new org.springframework.core.ParameterizedTypeReference<>() {}
+        );
+
+        assertEquals(HttpStatus.OK, getResp.getStatusCode());
+        assertNotNull(getResp.getBody());
+        MovieControllerIntegrationTest.PageResponse<Comment> page = getResp.getBody();
+        assertNotNull(page.getContent());
+        assertFalse(page.getContent().isEmpty());
+        assertTrue(page.getContent().getFirst().getCommentText().toLowerCase().contains("great"));
     }
 
     @Test
@@ -112,38 +120,7 @@ public class CommentIntegrationTest {
         assertEquals(HttpStatus.OK, addResponse.getStatusCode());
     }
 
-    @Test
-    void testGetCommentsByMovieId() {
-        var movie = new Movie();
-        movie.setTitle("test");
-        movie.setMovie_year(2023);
-        movie.setCategory("Drama");
-        movie.setDescription("A test movie for integration testing.");
-        movie.setPrizes("Best Picture");
-        movie.setAgeRestriction(0);
-        movieRepository.save(movie);
-        Long movieId = movie.getId();
 
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", jwtToken);
-        headers.set("Content-Type", "application/json");
-        String commentText = "\"great movie!\"";
-        HttpEntity<String> addRequest = new HttpEntity<>(commentText, headers);
-        restTemplate.postForEntity(baseUrl + "/add/" + movieId, addRequest, Object.class);
-
-
-        HttpEntity<Void> getRequest = new HttpEntity<>(null, headers);
-        ResponseEntity<Object[]> getResponse = restTemplate.exchange(
-                baseUrl + "/movie/" + movieId,
-                HttpMethod.GET,
-                getRequest,
-                Object[].class);
-
-        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-        assert getResponse.getBody() != null;
-        assert getResponse.getBody().length > 0;
-    }
 
     @Test
     void testUpdateComment() {

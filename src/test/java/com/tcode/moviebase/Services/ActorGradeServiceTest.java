@@ -2,6 +2,8 @@ package com.tcode.moviebase.Services;
 
 import com.tcode.moviebase.Entities.Actor;
 import com.tcode.moviebase.Entities.ActorGrade;
+import com.tcode.moviebase.Exceptions.ActorNotFoundException;
+import com.tcode.moviebase.Exceptions.GradeOutOfRangeException;
 import com.tcode.moviebase.Repositories.ActorGradeRepository;
 import com.tcode.moviebase.Repositories.ActorRepository;
 import org.junit.jupiter.api.Test;
@@ -14,11 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ActorGradeServiceTest {
@@ -83,8 +83,14 @@ public class ActorGradeServiceTest {
         int grade = 5;
         when(actorRepository.findById(actorId)).thenReturn(Optional.empty());
 
-        var result = actorGradeService.addActorGrade(actorId, grade);
-        assertNull(result);
+        assertThrows(ActorNotFoundException.class, () -> actorGradeService.addActorGrade(actorId, grade));
     }
 
+    @Test
+    void addActorGrade_gradeTooHigh_throws() {
+        Long actorId = 2L;
+        when(actorRepository.findById(actorId)).thenReturn(Optional.of(new Actor()));
+        assertThrows(GradeOutOfRangeException.class, () -> actorGradeService.addActorGrade(actorId, 11));
+        verify(actorGradeRepository, never()).save(any());
+    }
 }

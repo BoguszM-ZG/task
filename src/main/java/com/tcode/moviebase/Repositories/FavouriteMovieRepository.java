@@ -1,62 +1,43 @@
 package com.tcode.moviebase.Repositories;
 
-import com.tcode.moviebase.Dtos.MovieWithAvgGradeDto;
+
 import com.tcode.moviebase.Entities.FavouriteMovie;
 import com.tcode.moviebase.Entities.Movie;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+
 
 public interface FavouriteMovieRepository extends JpaRepository<FavouriteMovie, Integer> {
     boolean existsByUserIdAndMovieId(String userId, Long movieId);
     void deleteByUserIdAndMovieId(String userId, Long movieId);
 
     @Query("SELECT fm.movie FROM FavouriteMovie fm WHERE fm.userId = :userId")
-    List<Movie> findMoviesByUserId(@Param("userId") String userId);
+    Page<Movie> findMoviesByUserId(@Param("userId") String userId, Pageable pageable);
 
 
 
     @Query("SELECT fm.movie FROM FavouriteMovie fm WHERE fm.userId = :userID ORDER BY fm.createdAt DESC")
-    List<Movie> findMoviesByCreatedAt_Latest(@Param("userID") String userID);
+    Page<Movie> findMoviesByCreatedAt_Latest(@Param("userID") String userID, Pageable pageable);
 
 
     @Query("SELECT fm.movie FROM FavouriteMovie fm WHERE fm.userId = :userID ORDER BY fm.createdAt ASC")
-    List<Movie> findMoviesByCreatedAt_Oldest(@Param("userID") String userID);
+    Page<Movie> findMoviesByCreatedAt_Oldest(@Param("userID") String userID, Pageable pageable);
 
-    @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
-            "m.title, m.movie_year, m.category, m.description, m.prizes, " +
-            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction, AVG(g.grade)) " +
-            "FROM FavouriteMovie fm " +
-            "JOIN fm.movie m " +
-            "LEFT JOIN m.movieGrades g " +
-            "WHERE fm.userId = :userId " +
-            "GROUP BY m.title, m.movie_year, m.category, m.description, " +
-            "m.prizes, m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction " +
-            "ORDER BY m.title DESC")
-    List<MovieWithAvgGradeDto> findFavouriteMoviesByTitleZ_A(@Param("userId") String userId);
 
-    @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
-            "m.title, m.movie_year, m.category, m.description, m.prizes, " +
-            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction, AVG(g.grade)) " +
-            "FROM FavouriteMovie fm " +
-            "JOIN fm.movie m " +
-            "LEFT JOIN m.movieGrades g " +
-            "WHERE fm.userId = :userId " +
-            "GROUP BY m.title, m.movie_year, m.category, m.description, " +
-            "m.prizes, m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction " +
-            "ORDER BY m.title ASC")
-    List<MovieWithAvgGradeDto> findFavouriteMoviesByTitleA_Z(@Param("userId") String userId);
 
-    @Query("SELECT new com.tcode.moviebase.Dtos.MovieWithAvgGradeDto(" +
-            "m.title, m.movie_year, m.category, m.description, m.prizes, " +
-            "m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction, AVG(g.grade)) " +
-            "FROM FavouriteMovie fm " +
-            "JOIN fm.movie m " +
-            "LEFT JOIN m.movieGrades g " +
-            "WHERE fm.userId = :userId AND m.category = :category " +
-            "GROUP BY m.title, m.movie_year, m.category, m.description, " +
-            "m.prizes, m.world_premiere, m.polish_premiere, m.tag, m.ageRestriction")
-    List<MovieWithAvgGradeDto> findFavouriteMoviesByCategory(@Param("userId") String userId, @Param("category") String category);
+    @Query("SELECT m FROM FavouriteMovie fm JOIN fm.movie m WHERE fm.userId = :userId ORDER BY m.title DESC")
+    Page<Movie> findFavouriteMovieByTitleZ_A(@Param("userId") String userId, Pageable pageable);
+
+
+    @Query("SELECT m FROM FavouriteMovie fm JOIN fm.movie m WHERE fm.userId = :userId ORDER BY m.title ASC")
+    Page<Movie> findFavouriteMovieByTitleA_Z(@Param("userId") String userId, Pageable pageable);
+
+
+
+    @Query("SELECT m FROM FavouriteMovie fm JOIN fm.movie m WHERE fm.userId = :userId AND m.category = :category")
+    Page<Movie> findFavouriteMoviesByCategory(@Param("userId") String userId, @Param("category") String category, Pageable pageable);
 }

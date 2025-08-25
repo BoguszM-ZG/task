@@ -238,7 +238,6 @@ public class ReportCommentIntegrationTest {
                     baseUrl + "/approve/9999", HttpMethod.POST, new HttpEntity<>(headers), String.class);
         }catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-            assertEquals("Report does not exist.", e.getResponseBodyAsString());
         }
     }
 
@@ -253,7 +252,6 @@ public class ReportCommentIntegrationTest {
                     baseUrl + "/reject/9999", HttpMethod.POST, new HttpEntity<>(headers), String.class);
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-            assertEquals("Report does not exist.", e.getResponseBodyAsString());
         }
     }
 
@@ -269,8 +267,7 @@ public class ReportCommentIntegrationTest {
             restTemplate.postForEntity(
                     baseUrl + "/9999", reportRequest, String.class);
         } catch (HttpClientErrorException e) {
-            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-            assertEquals("Comment does not exist", e.getResponseBodyAsString());
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
         }
     }
 

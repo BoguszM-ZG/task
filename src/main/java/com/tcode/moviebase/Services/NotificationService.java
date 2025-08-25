@@ -4,6 +4,8 @@ package com.tcode.moviebase.Services;
 import com.tcode.moviebase.Entities.Movie;
 import com.tcode.moviebase.Entities.MovieNotification;
 import com.tcode.moviebase.Entities.UserAlert;
+import com.tcode.moviebase.Exceptions.MovieNotFoundException;
+import com.tcode.moviebase.Exceptions.NotificationException;
 import com.tcode.moviebase.Repositories.MovieNotificationRepository;
 import com.tcode.moviebase.Repositories.MovieRepository;
 import com.tcode.moviebase.Repositories.UserAlertRepository;
@@ -20,19 +22,24 @@ import java.util.List;
 public class NotificationService {
     private final MovieNotificationRepository movieNotificationRepository;
     private final MovieRepository movieRepository;
-    private  final UserAlertRepository userAlertRepository;
-
-    public boolean existsNotification(String userId, Long movieId) {
-        return movieNotificationRepository.existsByUserIdAndMovieId(userId, movieId);
-    }
+    private final UserAlertRepository userAlertRepository;
 
     @Transactional
     public void removeNotification(String userId, Long movieId) {
-        movieNotificationRepository.deleteByUserIdAndMovieId(userId, movieId);
+        if (movieNotificationRepository.existsByUserIdAndMovieId(userId, movieId)) {
+            movieNotificationRepository.deleteByUserIdAndMovieId(userId, movieId);
+        } else {
+            throw new NotificationException("Notification doesnt exists");
+
+        }
+
     }
 
     public void addNotification(String userId, Long movieId) {
-        var movie = movieRepository.findById(movieId).orElse(null);
+        var movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException("Movie not found"));
+        if (movieNotificationRepository.existsByUserIdAndMovieId(userId, movieId)) {
+            throw new NotificationException("Notification already exists");
+        }
         var notification = new MovieNotification(userId, movie);
         movieNotificationRepository.save(notification);
     }
